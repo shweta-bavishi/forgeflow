@@ -1,0 +1,63 @@
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+
+/**
+ * {{pascalCase name}} Entity
+ * Represents {{lowerCase name}} data in the database
+ */
+@Entity('{{kebabCase name}}s')
+export class {{pascalCase name}}Entity {
+  /**
+   * Unique identifier for {{lowerCase name}}
+   */
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  /**
+   * {{pascalCase name}} name or title
+   */
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  name: string;
+
+  /**
+   * {{pascalCase name}} description
+   */
+  @Column({ type: 'text', nullable: true })
+  description: string;
+
+  /**
+   * {{pascalCase name}} status
+   * Values: active, inactive, archived
+   */
+  @Column({ type: 'varchar', length: 50, default: 'active' })
+  status: string;
+
+  /**
+   * User who created this {{lowerCase name}}
+   */
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  createdBy: string;
+
+  /**
+   * Timestamp when {{lowerCase name}} was created
+   */
+  @CreateDateColumn()
+  createdAt: Date;
+
+  /**
+   * User who last updated this {{lowerCase name}}
+   */
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  updatedBy: string;
+
+  /**
+   * Timestamp when {{lowerCase name}} was last updated
+   */
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  /**
+   * Custom metadata as JSON
+   */
+  @Column({ type: 'json', nullable: true })
+  metadata: Record<string, any>;
+}

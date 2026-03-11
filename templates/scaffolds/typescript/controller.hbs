@@ -1,0 +1,66 @@
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, HttpCode } from '@nestjs/common';
+import { {{pascalCase name}}Service } from '../services/{{kebabCase name}}.service';
+import { Create{{pascalCase name}}Dto } from '../dto/create-{{kebabCase name}}.dto';
+import { Update{{pascalCase name}}Dto } from '../dto/update-{{kebabCase name}}.dto';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+
+/**
+ * {{pascalCase name}} Controller
+ * Handles HTTP requests for {{sentenceCase name}} operations
+ */
+@Controller('{{kebabCase name}}s')
+@UseGuards(JwtAuthGuard)
+export class {{pascalCase name}}Controller {
+  constructor(private readonly {{camelCase name}}Service: {{pascalCase name}}Service) {}
+
+  /**
+   * Create a new {{lowerCase name}}
+   * @param dto Data transfer object with {{lowerCase name}} details
+   * @returns Created {{lowerCase name}} with generated ID
+   */
+  @Post()
+  async create(@Body() dto: Create{{pascalCase name}}Dto) {
+    return await this.{{camelCase name}}Service.create(dto);
+  }
+
+  /**
+   * Get all {{lowerCase name}}s
+   * @returns Array of all {{lowerCase name}} records
+   */
+  @Get()
+  async findAll() {
+    return await this.{{camelCase name}}Service.findAll();
+  }
+
+  /**
+   * Get a specific {{lowerCase name}} by ID
+   * @param id {{pascalCase name}} ID
+   * @returns {{pascalCase name}} record or null if not found
+   */
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return await this.{{camelCase name}}Service.findOne(id);
+  }
+
+  /**
+   * Update a {{lowerCase name}}
+   * @param id {{pascalCase name}} ID
+   * @param dto Updated {{lowerCase name}} data
+   * @returns Updated {{lowerCase name}} record
+   */
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() dto: Update{{pascalCase name}}Dto) {
+    return await this.{{camelCase name}}Service.update(id, dto);
+  }
+
+  /**
+   * Delete a {{lowerCase name}}
+   * @param id {{pascalCase name}} ID
+   * @returns Success message
+   */
+  @Delete(':id')
+  @HttpCode(204)
+  async remove(@Param('id') id: string) {
+    await this.{{camelCase name}}Service.remove(id);
+  }
+}

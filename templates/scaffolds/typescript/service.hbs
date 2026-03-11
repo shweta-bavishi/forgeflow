@@ -1,0 +1,94 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { {{pascalCase name}}Repository } from '../repositories/{{kebabCase name}}.repository';
+import { Create{{pascalCase name}}Dto } from '../dto/create-{{kebabCase name}}.dto';
+import { Update{{pascalCase name}}Dto } from '../dto/update-{{kebabCase name}}.dto';
+import { {{pascalCase name}}Entity } from '../entities/{{kebabCase name}}.entity';
+
+/**
+ * {{pascalCase name}} Service
+ * Handles business logic for {{sentenceCase name}} operations
+ */
+@Injectable()
+export class {{pascalCase name}}Service {
+  constructor(private readonly {{camelCase name}}Repository: {{pascalCase name}}Repository) {}
+
+  /**
+   * Create a new {{lowerCase name}}
+   * Validates input and persists to database
+   * @param dto {{pascalCase name}} creation data
+   * @returns Created {{lowerCase name}} entity
+   * @throws BadRequestException if input is invalid
+   */
+  async create(dto: Create{{pascalCase name}}Dto): Promise<{{pascalCase name}}Entity> {
+    try {
+      // Validate input
+      if (!dto.name || dto.name.trim().length === 0) {
+        throw new BadRequestException('{{pascalCase name}} name is required');
+      }
+
+      // Create entity
+      const entity = new {{pascalCase name}}Entity();
+      Object.assign(entity, dto);
+
+      // Persist to database
+      return await this.{{camelCase name}}Repository.save(entity);
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to create {{lowerCase name}}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get all {{lowerCase name}}s
+   * @returns Array of all {{lowerCase name}} entities
+   */
+  async findAll(): Promise<{{pascalCase name}}Entity[]> {
+    return await this.{{camelCase name}}Repository.findAll();
+  }
+
+  /**
+   * Get a specific {{lowerCase name}} by ID
+   * @param id {{pascalCase name}} identifier
+   * @returns {{pascalCase name}} entity or null if not found
+   */
+  async findOne(id: string): Promise<{{pascalCase name}}Entity> {
+    const entity = await this.{{camelCase name}}Repository.findById(id);
+    if (!entity) {
+      throw new NotFoundException(`{{pascalCase name}} with ID ${id} not found`);
+    }
+    return entity;
+  }
+
+  /**
+   * Update an existing {{lowerCase name}}
+   * @param id {{pascalCase name}} identifier
+   * @param dto Partial {{lowerCase name}} update data
+   * @returns Updated {{lowerCase name}} entity
+   * @throws NotFoundException if {{lowerCase name}} doesn't exist
+   */
+  async update(id: string, dto: Update{{pascalCase name}}Dto): Promise<{{pascalCase name}}Entity> {
+    const entity = await this.findOne(id); // Verify exists
+
+    try {
+      // Apply updates
+      Object.assign(entity, dto);
+
+      // Persist changes
+      return await this.{{camelCase name}}Repository.save(entity);
+    } catch (error) {
+      throw new BadRequestException(`Failed to update {{lowerCase name}}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Delete a {{lowerCase name}}
+   * @param id {{pascalCase name}} identifier
+   * @throws NotFoundException if {{lowerCase name}} doesn't exist
+   */
+  async remove(id: string): Promise<void> {
+    const entity = await this.findOne(id); // Verify exists
+    await this.{{camelCase name}}Repository.delete(entity);
+  }
+}

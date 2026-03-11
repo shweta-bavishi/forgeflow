@@ -1,0 +1,210 @@
+# Changelog Template
+
+Generated for release tag. Replace placeholders with actual release data.
+
+---
+
+## {{VERSION}} - {{DATE}}
+
+### Summary
+
+{{RELEASE_SUMMARY}}
+
+High-level overview of the release in 2-3 sentences.
+
+Example:
+"This release brings significant improvements to user profile management, including custom avatars,
+profile editing, and enhanced security. We also fixed several critical bugs in the authentication system
+and improved overall performance."
+
+---
+
+### 🎉 New Features
+
+Features added in this release:
+
+- **{{JIRA_KEY}}: {{FEATURE_TITLE}}** — {{DESCRIPTION}}
+  - Related: [MR !{{MR_NUMBER}}](https://gitlab.com/yourorg/project/-/merge_requests/{{MR_NUMBER}})
+
+Example:
+- **PROJ-123: Avatar Upload** — Users can now upload custom profile avatars with automatic compression
+  - Related: [MR !456](https://gitlab.com/yourorg/project/-/merge_requests/456)
+- **PROJ-124: User Profile Editing** — Enhanced profile editing with real-time validation
+  - Related: [MR !457](https://gitlab.com/yourorg/project/-/merge_requests/457)
+- **PROJ-125: Two-Factor Authentication** — Added 2FA support for enhanced account security
+  - Related: [MR !458](https://gitlab.com/yourorg/project/-/merge_requests/458)
+
+---
+
+### 🐛 Bug Fixes
+
+Critical and important bug fixes:
+
+- **{{JIRA_KEY}}: {{BUG_TITLE}}** — {{DESCRIPTION}}
+  - Related: [MR !{{MR_NUMBER}}](https://gitlab.com/yourorg/project/-/merge_requests/{{MR_NUMBER}})
+
+Example:
+- **PROJ-200: Login Page Crash** — Fixed null pointer exception when email field is empty
+  - Related: [MR !460](https://gitlab.com/yourorg/project/-/merge_requests/460)
+- **PROJ-201: Invalid Session Handling** — Properly handle expired sessions in middleware
+  - Related: [MR !461](https://gitlab.com/yourorg/project/-/merge_requests/461)
+
+---
+
+### 🚀 Improvements
+
+Performance improvements, refactoring, and quality enhancements:
+
+- **{{JIRA_KEY}}: {{IMPROVEMENT_TITLE}}** — {{DESCRIPTION}}
+
+Example:
+- **PROJ-300: Database Query Optimization** — Reduced user profile load time by 60%
+- **PROJ-301: API Response Caching** — Added Redis caching for frequently accessed endpoints
+- **PROJ-302: Error Message Improvements** — More helpful error messages for API consumers
+
+---
+
+### ⚠️ Breaking Changes
+
+**IMPORTANT:** Any breaking changes that require client code updates:
+
+#### {{BREAKING_CHANGE_TITLE}}
+
+What changed:
+- Old: {{OLD_BEHAVIOR}}
+- New: {{NEW_BEHAVIOR}}
+
+Why: {{REASON_FOR_CHANGE}}
+
+Migration guide:
+{{MIGRATION_INSTRUCTIONS}}
+
+Example:
+
+#### API Endpoint Renamed
+
+What changed:
+- Old: `GET /users/me`
+- New: `GET /users/current`
+
+Why: Better semantic meaning. `/me` is ambiguous; `/current` clearly indicates the authenticated user.
+
+Migration guide:
+```bash
+# Update all client code references:
+# Old
+fetch('/api/users/me')
+
+# New
+fetch('/api/users/current')
+```
+
+---
+
+### 🔒 Security
+
+Security-related fixes and improvements:
+
+- **Security Fix**: {{SECURITY_FIX_DESCRIPTION}}
+- **Security Feature**: {{NEW_SECURITY_FEATURE}}
+
+Example:
+- **Security Fix**: Fixed CSRF vulnerability in form submissions
+- **Security Feature**: Added rate limiting to authentication endpoints
+- **Security Update**: Updated dependencies to patch known vulnerabilities
+
+---
+
+### 📚 Documentation
+
+Documentation changes and additions:
+
+- {{DOCUMENTATION_CHANGE}}
+
+Example:
+- Updated API documentation for new avatar endpoints
+- Added guide for two-factor authentication setup
+- Documented breaking changes and migration paths
+
+---
+
+### 🙏 Contributors
+
+Thank you to everyone who contributed to this release:
+
+- @developer1 (7 commits)
+- @developer2 (5 commits)
+- @developer3 (3 commits)
+- @developer4 (1 commit)
+
+---
+
+### 📦 Dependency Updates
+
+Any dependency additions or upgrades:
+
+**Added:**
+- sharp@0.32.0 (image compression)
+- ioredis@5.3.0 (Redis client)
+
+**Updated:**
+- express: 4.17.1 → 4.18.2
+- typescript: 4.9.0 → 5.0.0
+- jest: 28.1.0 → 29.5.0
+
+**Removed:**
+- deprecated-package@1.0.0
+
+---
+
+### 🎯 Known Issues
+
+Issues or limitations in this release:
+
+- Avatar editing not yet implemented (planned for v{{NEXT_VERSION}})
+- Mobile app sync occasionally delays by 5-10 seconds (investigating)
+- Bulk export feature times out with >10,000 records
+
+---
+
+### 🔗 Related
+
+- Previous release: [v{{PREVIOUS_VERSION}}]({{PREVIOUS_RELEASE_LINK}})
+- [Full commit list]({{COMMIT_RANGE_LINK}})
+- [GitHub Issues]({{GITHUB_ISSUES_LINK}})
+
+---
+
+### 📥 Installation & Upgrade
+
+**For new installations:**
+```bash
+git clone {{REPO_URL}}
+npm install
+npm start
+```
+
+**To upgrade from {{PREVIOUS_VERSION}}:**
+```bash
+git fetch origin
+git checkout {{VERSION}}
+npm install  # Install any new dependencies
+npm run migrate  # Run any database migrations (if applicable)
+npm start
+```
+
+**For Docker:**
+```bash
+docker pull {{DOCKER_REGISTRY}}/{{APP_NAME}}:{{VERSION}}
+docker run {{APP_NAME}}:{{VERSION}}
+```
+
+---
+
+**Release Date**: {{DATE}}
+**Release Manager**: {{MANAGER_NAME}}
+**Release Notes**: [Full Release Notes]({{RELEASE_NOTES_URL}})
+
+---
+
+*Generated by ForgeFlow — Multi-Agent Development Workflow Orchestrator*

@@ -1,0 +1,339 @@
+# ForgeFlow Configuration Template
+# Copy this file to your project root as forgeflow.config.yml and fill in your project details.
+# Every field is documented below with description, type, and example value.
+
+# ============================================================================
+# PROJECT IDENTITY
+# ============================================================================
+project:
+  # Project name (short identifier)
+  name: "my-awesome-api"
+
+  # Human-readable description
+  description: "REST API for managing user profiles and avatar uploads"
+
+  # Team name responsible for this project
+  team: "backend-squad"
+
+  # Primary programming language (typescript, java, python, go, rust, etc.)
+  language: "typescript"
+
+  # Framework used (nestjs, spring-boot, django, fastapi, etc.)
+  framework: "nestjs"
+
+  # Runtime environment (node.js 20, java 17, python 3.11, go 1.21, etc.)
+  runtime: "node.js 20"
+
+  # Package manager (npm, yarn, pnpm, maven, gradle, pip, poetry, cargo, etc.)
+  package_manager: "npm"
+
+  # Repository URL for git operations
+  repository_url: "https://gitlab.com/yourorg/my-awesome-api.git"
+
+# ============================================================================
+# ARCHITECTURE DETAILS
+# ============================================================================
+architecture:
+  # Architecture pattern (clean architecture, MVC, hexagonal, event-driven, etc.)
+  pattern: "clean architecture"
+
+  # Architectural layers (list of layer definitions)
+  layers:
+    - name: "controllers"
+      path: "src/controllers"
+      description: "HTTP request handlers and route definitions"
+    - name: "services"
+      path: "src/services"
+      description: "Business logic and domain logic"
+    - name: "repositories"
+      path: "src/repositories"
+      description: "Data access layer and database interactions"
+    - name: "entities"
+      path: "src/entities"
+      description: "Domain entities and data models"
+    - name: "middleware"
+      path: "src/middleware"
+      description: "HTTP middleware and cross-cutting concerns"
+    - name: "decorators"
+      path: "src/decorators"
+      description: "Custom decorators and annotations"
+    - name: "guards"
+      path: "src/guards"
+      description: "Authentication and authorization guards"
+    - name: "filters"
+      path: "src/filters"
+      description: "Exception filters and error handling"
+
+  # Key files that agents should read to understand architecture
+  key_files:
+    - "src/app.module.ts"
+    - "src/main.ts"
+    - "package.json"
+    - "README.md"
+    - ".eslintrc.js"
+    - "jest.config.js"
+    - "Dockerfile"
+
+# ============================================================================
+# CODING STANDARDS
+# ============================================================================
+coding_standards:
+  # Style guide reference (Airbnb, Google, Microsoft, etc.)
+  style_guide: "Airbnb TypeScript"
+
+  # Linter tool and config file
+  linter: "eslint"
+  linter_config: ".eslintrc.js"
+
+  # Code formatter and config file
+  formatter: "prettier"
+  formatter_config: ".prettierrc"
+
+  # Test framework used in the project
+  test_framework: "jest"
+  test_config: "jest.config.js"
+
+  # Pattern for test file locations (glob pattern)
+  test_pattern: "src/**/*.spec.ts"
+
+  # Minimum code coverage threshold (percentage)
+  coverage_threshold: 80
+
+  # Naming conventions for different code elements
+  naming:
+    files: "kebab-case"           # avatar-service.ts, user.entity.ts
+    directories: "kebab-case"      # src/user-service, src/auth-guards
+    classes: "PascalCase"           # UserService, AvatarController
+    functions: "camelCase"          # getUserById, createAvatarUpload
+    constants: "UPPER_SNAKE_CASE"   # MAX_FILE_SIZE, DEFAULT_TIMEOUT
+    interfaces: "PascalCase"         # IUserRepository, UserCreateRequest
+    variables: "camelCase"           # userId, isActive
+
+  # Project-specific coding rules
+  rules:
+    - "Use dependency injection via constructor parameters (NestJS pattern)"
+    - "Always add JSDoc comments to public methods"
+    - "Use custom exceptions for business logic errors (extend HttpException)"
+    - "Validate input using class-validator decorators"
+    - "Use async/await, never raw Promises in services"
+    - "Keep methods to single responsibility (max 30 lines)"
+    - "Use enum for status fields instead of string literals"
+    - "Write unit tests for services, integration tests for controllers"
+
+# ============================================================================
+# JIRA CONFIGURATION
+# ============================================================================
+jira:
+  # Jira project key (e.g., PROJ, TEAM, API)
+  project_key: "PROJ"
+
+  # Jira board ID for this project (required for sprint operations)
+  board_id: 123
+
+  # Custom issue type names (must match your Jira instance)
+  epic_issue_type: "Epic"
+  story_issue_type: "Story"
+  task_issue_type: "Task"
+  bug_issue_type: "Bug"
+
+  # Custom field IDs for story points and sprint (copy from Jira field config)
+  story_point_field: "customfield_10021"  # Story Points field ID
+  sprint_field: "customfield_10020"        # Sprint field ID
+
+  # Status transitions for this project workflow
+  statuses:
+    todo: "To Do"
+    in_progress: "In Progress"
+    in_review: "In Review"
+    qa: "QA"
+    done: "Done"
+
+  # Default labels to apply to new issues created by ForgeFlow
+  labels:
+    - "forgeflow-auto"
+    - "backend"
+
+# ============================================================================
+# GITLAB CONFIGURATION
+# ============================================================================
+gitlab:
+  # GitLab project ID (numeric ID from project settings)
+  project_id: 12345
+
+  # Default branch for development (usually 'develop' or 'main')
+  default_branch: "develop"
+
+  # Release branch pattern (e.g., 'release/v*', 'release-*')
+  release_branch_pattern: "release/v*"
+
+  # Branch naming conventions
+  branching:
+    feature_prefix: "feature/"      # feature/PROJ-123-user-auth
+    bugfix_prefix: "fix/"            # fix/PROJ-123-login-crash
+    hotfix_prefix: "hotfix/"         # hotfix/PROJ-123-critical-fix
+    release_prefix: "release/v"      # release/v1.2.0
+    chore_prefix: "chore/"           # chore/PROJ-123-dependencies
+
+  # Merge request conventions
+  merge_request:
+    target_branch: "develop"         # Default target branch for MRs
+    squash_commits: true             # Squash commits before merge
+    delete_source_branch: true       # Delete source branch after merge
+    auto_remove_source_branch: true  # Remove source branch automatically
+
+  # Commit message format
+  commit_message:
+    # Pattern uses {{key}} for Jira key, {{title}} for issue title, {{description}} for details
+    pattern: "{{key}}: {{title}}\n\n{{description}}\n\nJira: https://jira.your-org.com/browse/{{key}}"
+    # Examples of commit messages this pattern generates:
+    # PROJ-123: Add user avatar upload endpoint
+    #
+    # - Implement POST /users/:id/avatar endpoint
+    # - Add file validation and compression
+    #
+    # Jira: https://jira.your-org.com/browse/PROJ-123
+
+# ============================================================================
+# CONFLUENCE CONFIGURATION
+# ============================================================================
+confluence:
+  # Confluence space key (e.g., PROJ, DOCS, ENG)
+  space_key: "ENG"
+
+  # Page ID of the parent page for release notes
+  # (ForgeFlow will create new release note pages as children of this page)
+  release_notes_parent_page_id: 12345678
+
+  # Page ID where requirements/epics are stored (for plan-epics workflow)
+  requirements_page_id: null  # Optional: if specified, plan-epics can auto-discover this page
+
+  # Template page ID for new pages (optional, for consistent formatting)
+  template_page_id: null
+
+# ============================================================================
+# JENKINS CONFIGURATION
+# ============================================================================
+jenkins:
+  # Jenkins job name for building/testing this project
+  job_name: "my-awesome-api-build"
+
+  # Jenkins job name for deploying to production
+  deploy_job_name: "my-awesome-api-deploy"
+
+  # Base URL for Jenkins instance (for links in workflow output)
+  base_url: "https://jenkins.your-org.com"
+
+# ============================================================================
+# SONARQUBE CONFIGURATION
+# ============================================================================
+sonarqube:
+  # SonarQube project key (matches sonar-project.properties)
+  project_key: "com.yourorg:my-awesome-api"
+
+  # SonarQube quality gate name (e.g., "Sonar way", "Strict")
+  quality_gate: "Sonar way"
+
+  # Base URL for SonarQube instance (for links in workflow output)
+  base_url: "https://sonarqube.your-org.com"
+
+# ============================================================================
+# SCAFFOLD TEMPLATES MAPPING
+# ============================================================================
+scaffolds:
+  # Handlebars templates for code generation
+  # When creating new files, agents use these templates
+  typescript:
+    - name: "controller"
+      template: "templates/scaffolds/typescript/controller.hbs"
+      output_pattern: "src/controllers/{{kebab name}}.controller.ts"
+    - name: "service"
+      template: "templates/scaffolds/typescript/service.hbs"
+      output_pattern: "src/services/{{kebab name}}.service.ts"
+    - name: "repository"
+      template: "templates/scaffolds/typescript/repository.hbs"
+      output_pattern: "src/repositories/{{kebab name}}.repository.ts"
+    - name: "entity"
+      template: "templates/scaffolds/typescript/entity.hbs"
+      output_pattern: "src/entities/{{kebab name}}.entity.ts"
+    - name: "test"
+      template: "templates/scaffolds/typescript/test.hbs"
+      output_pattern: "src/{{path}}/{{kebab name}}.spec.ts"
+
+# ============================================================================
+# APPROVAL GATES (HITL Configuration)
+# ============================================================================
+approval_gates:
+  # Actions that ALWAYS require developer approval (never auto-approved)
+  always_require_approval:
+    - "create_release_build"        # Merging to develop/release
+    - "create_release_note"          # Publishing release notes
+    - "push_code_to_remote"          # All code pushes
+    - "update_jira_status_to_done"   # Closing issues
+
+  # Actions that can auto-approve if conditions are met
+  # (still requires human review, but workflow can proceed if checks pass)
+  can_auto_approve_if:
+    - "sonar_fix_auto_fixable_issues"    # Auto-approve if all issues are auto-fixable
+    - "fix_pipeline_low_risk"            # Auto-approve if fix is low-risk
+
+# ============================================================================
+# OPTIONAL: ADVANCED CONFIGURATIONS
+# ============================================================================
+
+# Code owner rules for MR reviewers (optional, uses .gitlab/CODEOWNERS format)
+codeowners_path: ".gitlab/CODEOWNERS"
+
+# Dependency management constraints (optional)
+dependencies:
+  # Prohibited dependencies that should never be added
+  blacklist:
+    - "eval"
+    - "child_process"
+    - "fs in non-utility modules"
+
+  # Required dependencies for security/compliance
+  required:
+    - "helmet"
+    - "class-validator"
+    - "class-transformer"
+
+# Token optimization hints (for agent context loading)
+token_optimization:
+  # Maximum lines of code to load into agent context for a single file
+  max_file_lines_in_context: 300
+
+  # Agent should summarize files larger than this
+  auto_summarize_above_lines: 500
+
+# ============================================================================
+# INTEGRATION CREDENTIALS
+# ============================================================================
+# NOTE: Do NOT commit actual credentials here. These are example placeholders.
+# Set actual values via environment variables (JIRA_TOKEN, GITLAB_TOKEN, etc.)
+# or Copilot Chat secrets configuration.
+
+integrations:
+  jira:
+    # URL of your Jira instance
+    url: "https://jira.your-org.com"
+    # Token loaded from env: JIRA_TOKEN (or Copilot Chat secrets)
+
+  gitlab:
+    # URL of your GitLab instance
+    url: "https://gitlab.com"
+    # Token loaded from env: GITLAB_TOKEN
+
+  confluence:
+    # URL of your Confluence instance
+    url: "https://confluence.your-org.com"
+    # Token loaded from env: CONFLUENCE_TOKEN
+
+  jenkins:
+    # URL of your Jenkins instance
+    url: "https://jenkins.your-org.com"
+    # Credentials loaded from env: JENKINS_USER, JENKINS_TOKEN
+
+  sonarqube:
+    # URL of your SonarQube instance
+    url: "https://sonarqube.your-org.com"
+    # Token loaded from env: SONARQUBE_TOKEN

@@ -1,0 +1,76 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { {{pascalCase name}}Entity } from '../entities/{{kebabCase name}}.entity';
+
+/**
+ * {{pascalCase name}} Repository
+ * Data access layer for {{sentenceCase name}} operations
+ */
+@Injectable()
+export class {{pascalCase name}}Repository {
+  constructor(
+    @InjectRepository({{pascalCase name}}Entity)
+    private readonly repository: Repository<{{pascalCase name}}Entity>,
+  ) {}
+
+  /**
+   * Save a {{lowerCase name}} entity to database
+   * Creates new or updates existing record
+   * @param entity {{pascalCase name}} entity to save
+   * @returns Saved {{lowerCase name}} entity with generated ID
+   */
+  async save(entity: {{pascalCase name}}Entity): Promise<{{pascalCase name}}Entity> {
+    return await this.repository.save(entity);
+  }
+
+  /**
+   * Find a {{lowerCase name}} by ID
+   * @param id {{pascalCase name}} identifier
+   * @returns {{pascalCase name}} entity or null if not found
+   */
+  async findById(id: string): Promise<{{pascalCase name}}Entity | null> {
+    return await this.repository.findOne({ where: { id } });
+  }
+
+  /**
+   * Find all {{lowerCase name}}s
+   * @returns Array of all {{lowerCase name}} entities
+   */
+  async findAll(): Promise<{{pascalCase name}}Entity[]> {
+    return await this.repository.find();
+  }
+
+  /**
+   * Find {{lowerCase name}}s matching criteria
+   * @param where WHERE clause conditions
+   * @returns Array of matching {{lowerCase name}} entities
+   */
+  async find(where: Partial<{{pascalCase name}}Entity>): Promise<{{pascalCase name}}Entity[]> {
+    return await this.repository.find({ where });
+  }
+
+  /**
+   * Delete a {{lowerCase name}} entity
+   * @param entity {{pascalCase name}} entity to delete
+   */
+  async delete(entity: {{pascalCase name}}Entity): Promise<void> {
+    await this.repository.delete(entity.id);
+  }
+
+  /**
+   * Delete {{lowerCase name}}(s) matching criteria
+   * @param where WHERE clause conditions
+   */
+  async deleteWhere(where: Partial<{{pascalCase name}}Entity>): Promise<void> {
+    await this.repository.delete(where);
+  }
+
+  /**
+   * Count total {{lowerCase name}}s
+   * @returns Number of {{lowerCase name}} records
+   */
+  async count(): Promise<number> {
+    return await this.repository.count();
+  }
+}
