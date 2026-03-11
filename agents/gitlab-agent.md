@@ -431,8 +431,55 @@ get_gitlab_ci_guide          — Get CI/CD template usage guide
 generate_gitlab_ci_config    — Generate .gitlab-ci.yml
 explain_gitlab_ci_parameter  — Understand specific parameters
 list_available_templates     — Discover CI/CD templates
+list_available_skills_tool   — List all available skills from the GitLab repository
 
 Use these in extended workflows for CI/CD improvements.
+```
+
+## Rate Limiting & Retry Strategy
+
+```
+IF GitLab API returns 429 (Rate Limited):
+  → Wait Retry-After header value (or 10 seconds default)
+  → Retry up to 3 times
+  → Inform developer: "GitLab is rate limiting. Waiting..."
+
+IF GitLab API returns 5xx:
+  → Wait 10 seconds, retry once
+  → If still failing: "GitLab API is unavailable"
+
+IF commit_file_and_create_mr fails:
+  → Check if branch was created (partial success)
+  → If branch exists: Use commit_and_push_file to add files
+  → Then create_merge_request separately
+  → Report what succeeded and what failed
+
+FOR large file commits:
+  → File content > 1MB may timeout
+  → Split into smaller commits if possible
+  → Warn developer about large file limitations
+```
+
+## Rollback / Undo Guidance
+
+```
+IF branch was created with incorrect code:
+  → Cannot delete branch via MCP
+  → Guide developer:
+    "Branch '{branch_name}' was created with incorrect code.
+     Options:
+     a) I can push corrected code to the same branch
+     b) You can delete the branch via GitLab UI
+     c) Close the MR and we can start fresh"
+
+IF MR was created prematurely:
+  → Cannot close MR via MCP
+  → Guide developer: "Close the MR in GitLab UI if needed"
+
+NEVER:
+  - Force-push without developer approval
+  - Attempt to delete branches
+  - Assume MR can be edited after creation
 ```
 
 ## Success Criteria
@@ -453,7 +500,7 @@ This agent succeeds when:
 
 **Model Hint**: FAST (MCP-heavy, primarily tool calling)
 
-**MCP Tools**: get_project_info, get_file_content, commit_and_push_file, commit_file_and_create_mr, create_merge_request, list_project_merge_requests, get_project_pipelines, search_in_repository, review_merge_request, review_and_comment_mr, post_mr_review_comment, get_gitlab_ci_guide, generate_gitlab_ci_config, explain_gitlab_ci_parameter
+**MCP Tools**: get_project_info, get_file_content, commit_and_push_file, commit_file_and_create_mr, create_merge_request, list_project_merge_requests, list_project_issues, get_project_pipelines, search_in_repository, search_gitlab_projects, list_user_projects, review_merge_request, review_and_comment_mr, post_mr_review_comment, get_gitlab_ci_guide, generate_gitlab_ci_config, explain_gitlab_ci_parameter, list_available_templates, list_available_skills_tool
 
 **Key Pattern**: Use `commit_file_and_create_mr` (creates branch + MR in one call)
 

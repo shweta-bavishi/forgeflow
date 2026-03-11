@@ -317,6 +317,68 @@ When updating issue:
   Can add story points, assign to sprint, etc. using field IDs
 ```
 
+## Subtask Operations
+
+### Creating Subtasks
+
+```
+GOAL: Break a story or task into subtasks for finer-grained tracking
+
+Call: create_jira_subtask(
+  parent_key: "PROJ-123",
+  summary: "Implement file validation logic",
+  description: "Add file type and size validation..."
+)
+→ Returns: PROJ-123-1 (subtask key linked to parent)
+
+WHEN TO USE:
+  - When a story is too large for one developer
+  - When you need parallel work on sub-items
+  - When tracking granular progress matters
+
+VALIDATION:
+  - Parent must exist and be a Story/Task (not another subtask)
+  - Subtask inherits project and sprint from parent
+  - If parent doesn't support subtasks: error → use create_jira_issue instead
+```
+
+## Rate Limiting & Retry Strategy
+
+```
+IF Jira API returns 429 (Too Many Requests):
+  → Wait 5 seconds, then retry
+  → Maximum 3 retries before stopping
+  → Inform developer: "Jira is rate limiting. Retrying..."
+
+IF Jira API returns 5xx (Server Error):
+  → Wait 10 seconds, retry once
+  → If still failing: "Jira appears to be down. Try again later."
+
+FOR batch operations (creating 10+ issues):
+  → Add 1-second delay between each create call
+  → Show progress: "Created 5/10..."
+  → If one fails mid-batch: continue others, report failures at end
+```
+
+## Rollback / Undo Guidance
+
+```
+IF issues were created incorrectly:
+  → Cannot delete issues via MCP (no delete tool)
+  → Guide developer: "These issues were created but may need adjustment:
+     - {list of created issues}
+     - Edit in Jira UI if needed
+     - Or I can update them with corrected data"
+
+IF status transition was wrong:
+  → Transition back to previous status if possible
+  → Or ask developer to fix in Jira UI
+
+NEVER:
+  - Silently overwrite issue data without showing what changed
+  - Assume transition reversal is safe without checking available transitions
+```
+
 ## Helpful Patterns
 
 ### Pattern: Create epic with stories and add to sprint
@@ -369,7 +431,7 @@ This agent succeeds when:
 
 **Model Hint**: FAST (MCP-heavy, decision-light)
 
-**MCP Tools**: get_jira_issue, get_jira_issue_detail, get_jira_project_info, create_jira_issue, create_epic_with_issues, update_jira_issue, search_jira_issues, link_issues, move_issue_to_sprint, list_jira_projects, get_project_sprints
+**MCP Tools**: get_jira_issue, get_jira_issue_detail, get_jira_project_info, create_jira_issue, create_jira_subtask, create_epic_with_issues, update_jira_issue, search_jira_issues, link_issues, move_issue_to_sprint, list_jira_projects, get_project_sprints
 
 **Critical Rule**: ALWAYS call get_jira_project_info before any create_jira_issue
 

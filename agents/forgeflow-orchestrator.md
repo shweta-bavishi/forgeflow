@@ -298,6 +298,77 @@ ASK: "What's next?"
   → Or end conversation gracefully
 ```
 
+## Workflow Dependency Graph
+
+Recommended workflow sequences:
+
+```
+01-init-project ──────────────────────────────────────┐
+    │                                                  │
+    ▼                                                  │
+02-plan-epics ────→ 03-plan-dev-tasks                  │
+                         │                             │
+                         ▼                             │
+                    04-implement-dev-task               │
+                         │                             │
+                    ┌────┴────┐                        │
+                    ▼         ▼                        │
+              05-fix-pipeline  06-sonar-fix             │
+                    │         │                        │
+                    └────┬────┘                        │
+                         ▼                             │
+                    07-create-release-build             │
+                         │                             │
+                         ▼                             │
+                    08-create-release-note              │
+                                                       │
+                    ALL WORKFLOWS REQUIRE: ◄────────────┘
+                      forgeflow.config.yml
+                      (from 01-init-project)
+```
+
+### Typical Development Cycle
+
+```
+1. Init project (once per project)
+2. Plan epics from Confluence requirements
+3. For each epic: Plan dev tasks
+4. For each task:
+   a. Implement dev task → creates MR
+   b. Fix pipeline (if build fails)
+   c. Fix sonar issues (if quality gate fails)
+   d. Get MR reviewed and approved
+5. Create release build (merge + tag)
+6. Create release note (document the release)
+7. Repeat from step 3 for next sprint
+```
+
+## Global Retry & Resilience Policy
+
+```
+FOR all MCP tool calls across all agents:
+
+TRANSIENT ERRORS (network, timeout, 5xx):
+  → Retry up to 3 times with exponential backoff (2s, 4s, 8s)
+  → After 3 failures: inform developer, offer manual alternative
+  → Log the error for debugging
+
+AUTHENTICATION ERRORS (401, 403):
+  → Do NOT retry (credentials won't change)
+  → Immediately inform developer
+  → Point to docs/mcp-setup.md for credential setup
+
+VALIDATION ERRORS (400, 422):
+  → Do NOT retry (input won't change)
+  → Show the exact error message
+  → Ask developer to correct input
+
+RATE LIMITING (429):
+  → Wait for Retry-After header (or 30 seconds default)
+  → Retry up to 5 times
+  → If still blocked: "API rate limited. Wait a few minutes and try again."
+```
+
 ## What NOT to Do
 
 - ❌ Don't auto-proceed past HITL gates
