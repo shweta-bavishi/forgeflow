@@ -1,18 +1,74 @@
 ---
 name: init-project
-description: "Initialize Otomate for a project. Scans repository structure, auto-detects language, framework, architecture, CI/CD tools, and generates otomate.config.yml."
+description: "Initialize Otomate for a project. Can be run from outside the target project by providing a project path. Scans repository structure, auto-detects language, framework, architecture, CI/CD tools, generates otomate.config.yml, and copies the complete Otomate system into the project's .otomate/ directory with version stamping."
 ---
 
 # Skill: Initialize Project
 
-Scan a repository, auto-detect project characteristics, and generate a complete `otomate.config.yml`.
+Initialize Otomate for a target project — scan its repository, auto-detect project characteristics, generate `otomate.config.yml`, and install the full Otomate system into `.otomate/`.
+
+## Input
+
+```
+REQUIRED: project_path — path to the target project folder
+
+IF developer provides a path:
+  → Use that path as the target project
+  Examples: "Init project at /home/dev/my-api", "Init ../my-api"
+
+IF no path provided:
+  → Ask: "Which project folder do you want to initialize?
+          Provide the path or press enter for current directory."
+  → Default: current working directory
+
+Store: otomate_source = the directory containing this Otomate installation
+       (where VERSION, agents/, workflows/, etc. live)
+```
+
+## Phase 0: PRE-FLIGHT — Check Initialization Status
+
+```
+STEP 1 — Validate project path:
+  IF path does not exist → STOP: "Path does not exist."
+  IF path is not a directory → STOP: "Path is not a directory."
+  IF no .git/ folder → WARN: "Not a git repo. Some features will be limited. Continue?"
+
+STEP 2 — Check for existing initialization:
+  Look for: {project_path}/.otomate/ directory
+
+  IF .otomate/ EXISTS:
+    Read: {project_path}/.otomate/VERSION → current_version
+    Read: {otomate_source}/VERSION → latest_version
+
+    IF versions match:
+      → INFORM: "Already initialized with Otomate v{version}.
+                 Use 'Update Otomate' to upgrade, or
+                 'Force re-initialize' to start fresh."
+      → STOP (unless force re-initialize requested)
+
+    IF versions differ:
+      → INFORM: "Otomate v{current_version} installed.
+                 Latest is v{latest_version}.
+                 Use 'Update Otomate' to upgrade."
+      → STOP (unless force re-initialize requested)
+
+  IF .otomate/ DOES NOT EXIST:
+    → Continue to Phase 1
+
+STEP 3 — Handle force re-initialize:
+  IF developer says "force re-initialize":
+    → WARN: "This will overwrite existing config and .otomate/ directory."
+    → 🚦 GATE: "Are you sure? (yes/no)"
+    → IF yes: Continue to Phase 1
+    → IF no: STOP
+```
 
 ## Phase 1: SCAN REPOSITORY
 
 ### Language Detection
 
 ```
-Check file extensions and package files:
+Check file extensions and package files in {project_path}:
   TypeScript → .ts/.tsx + tsconfig.json
   JavaScript → .js/.jsx + package.json (no TS)
   Java → .java + pom.xml or build.gradle
@@ -69,7 +125,7 @@ Config file detection:
 ### Architecture Detection
 
 ```
-Scan folder structure to map layers:
+Scan folder structure to map layers in {project_path}:
 
 TypeScript/NestJS:
   src/controllers/ → controller layer
@@ -148,7 +204,10 @@ Confluence: Extract space key from CI variables (often manual)
 ## Phase 4: PRESENT DRAFT CONFIG
 
 ```
-Show generated config with status:
+Show generated config with status indicators:
+
+# Otomate version
+otomate_version: "1.0.0"
 
 project:
   name: "my-awesome-api"          ✓ Auto-detected
@@ -162,9 +221,9 @@ jira:
 gitlab:
   project_id: ???                 ⚠ NEEDS INPUT (numeric ID)
   default_branch: "develop"       ✓ Detected
-```
 
 Highlight: ✓ AUTO-DETECTED vs ⚠ NEEDS MANUAL INPUT with guidance for each.
+```
 
 ## Phase 5: 🚦 HITL GATE — Developer Reviews
 
@@ -180,22 +239,55 @@ Developer can:
 Support multi-round refinement until developer is satisfied
 ```
 
-## Phase 6: SAVE CONFIGURATION
+## Phase 6: SAVE CONFIGURATION & INSTALL OTOMATE
 
 ```
 1. Finalize config with developer's input
-2. Write otomate.config.yml to project root
-3. Verify: config exists, all required fields populated
-4. Show:
-   ✓ Otomate initialized!
-   ✓ Config saved to otomate.config.yml
-   → Next: try any workflow (plan epics, implement task, etc.)
+   Add otomate_version from {otomate_source}/VERSION
+
+2. Write otomate.config.yml to {project_path}/otomate.config.yml
+
+3. Copy full Otomate system to {project_path}/.otomate/:
+   Source: {otomate_source}/
+   Copy:
+     agents/         → .otomate/agents/
+     workflows/      → .otomate/workflows/
+     templates/      → .otomate/templates/
+     config/         → .otomate/config/
+     docs/           → .otomate/docs/
+     scripts/        → .otomate/scripts/
+     .github/        → .otomate/.github/
+     VERSION         → .otomate/VERSION
+     README.md       → .otomate/README.md
+     SETUP.md        → .otomate/SETUP.md
+     ARCHITECTURE.md → .otomate/ARCHITECTURE.md
+
+   DO NOT copy: .git/, otomate.config.yml, .gitattributes
+
+4. Stamp version: write VERSION to {project_path}/.otomate/VERSION
+
+5. Suggest .gitignore additions if appropriate
+
+6. Verify:
+   ✓ otomate.config.yml exists at project root
+   ✓ .otomate/ is complete
+   ✓ .otomate/VERSION matches source VERSION
+   ✓ All required config fields populated
+
+7. Show:
+   ✓ Otomate v{version} initialized!
+   ✓ Config: {project_path}/otomate.config.yml
+   ✓ System: {project_path}/.otomate/
+   → Next: try any workflow
 ```
 
 ## Error Handling
 
 ```
-Non-standard repo → generate minimal config with clear placeholders
+Invalid path → STOP with clear message, ask for valid path
+Non-standard repo → generate minimal config with placeholders
 Key files unreadable → skip section, note clearly, ask developer
 Git info unavailable → ask developer directly for project details
+Already initialized → inform and suggest 'Update Otomate' or 'Force re-initialize'
+Copy failure → show error, offer manual copy instructions
 ```

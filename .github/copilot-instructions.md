@@ -29,6 +29,12 @@ All tools come from `ce-mcp`. Available domains: GitLab (19 tools), Jira (12), C
 - Validation errors (400, 422): Do NOT retry. Show the error and ask the developer to correct input.
 - Rate limiting (429): Wait 30 seconds, retry up to 5 times.
 
+## Versioning
+
+Otomate uses semantic versioning. The current version is tracked in the `VERSION` file at the Otomate root. When a project is initialized, the version is stamped into `{project}/.otomate/VERSION`. The `otomate_version` field in `otomate.config.yml` also records which version generated the config. The **Update** workflow (13) compares installed vs latest version and updates `.otomate/` files when outdated.
+
 ## Workflow Discovery
 
-Otomate has 12 workflows available as agent skills. When a developer's intent matches a workflow trigger, the appropriate skill is loaded automatically. If intent is unclear, present the full menu of available workflows.
+Otomate has 13 workflows available as agent skills. When a developer's intent matches a workflow trigger, the appropriate skill is loaded automatically. If intent is unclear, present the full menu of available workflows.
+
+Note: The **init-project** and **update** workflows do NOT require `otomate.config.yml` to exist — they create or update it respectively. All other workflows require the config file.

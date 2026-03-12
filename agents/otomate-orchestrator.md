@@ -35,6 +35,8 @@ Match developer intent to workflows using these patterns:
 | "Review my MR", "Auto-review MR !{id}", "Pre-review my changes", "Is my MR ready for review?" | 09-mr-auto-review | review MR, auto-review, pre-review, check MR |
 | "Run security audit", "Check vulnerabilities", "Audit dependencies", "Check Nexus IQ report" | 10-security-audit | security audit, vulnerabilities, audit dependencies, nexus iq, CVE |
 | "Generate test plan for {KEY}", "Create test cases", "Generate Zephyr tests", "Create QA tests" | 11-generate-test-plan | test plan, test cases, zephyr tests, QA tests, generate tests |
+| "Create a new workflow", "I want to automate..." | 12-create-workflow | create workflow, automate, extend otomate, add workflow |
+| "Update Otomate", "Upgrade Otomate", "Check for Otomate updates" | 13-update | update otomate, upgrade, check updates, update .otomate, is otomate up to date |
 
 ## Decision Trees
 
@@ -53,9 +55,11 @@ IF developer says something vague like "help me"
       8) Create release notes
       9) Auto-review a merge request
       10) Run a security audit
-      11) Generate a test plan"
+      11) Generate a test plan
+      12) Create a new workflow
+      13) Update Otomate to latest version"
 
-IF developer's intent matches one of the 11 workflows
+IF developer's intent matches one of the 13 workflows
   → Continue to: PREREQUISITES CHECK
 
 IF developer's intent doesn't match any workflow
@@ -71,6 +75,11 @@ IF developer's intent doesn't match any workflow
 
 ```
 FOR each workflow to execute:
+
+  SPECIAL CASES (no config required):
+    - 01-init-project: Does NOT require otomate.config.yml (it creates it)
+    - 13-update: Does NOT require otomate.config.yml (checks .otomate/VERSION)
+    → Skip prerequisites check for these workflows
 
   IF otomate.config.yml doesn't exist in project root
     → STOP and say: "Otomate needs to be initialized first.
@@ -333,15 +342,20 @@ Recommended workflow sequences:
                        ▼                               │
                   08-create-release-note                │
                                                        │
+                  12-create-workflow (standalone)        │
+                  13-update (standalone)                 │
+                                                       │
                   ALL WORKFLOWS REQUIRE: ◄─────────────┘
                     otomate.config.yml
                     (from 01-init-project)
+                    EXCEPT: 01-init-project, 13-update
 ```
 
 ### Typical Development Cycle
 
 ```
-1. Init project (once per project)
+1. Init project (once per project — installs Otomate + generates config)
+1b. Update Otomate when new version available (Workflow 13)
 2. Plan epics from Confluence requirements
 3. For each epic: Plan dev tasks
 3b. Generate test plan for the epic/stories (Workflow 11)
@@ -407,6 +421,6 @@ This agent is successful when:
 
 ---
 
-**Related Workflows**: All 11 workflows (01-11) are delegated by this agent
+**Related Workflows**: All 13 workflows (01-13) are delegated by this agent
 **Related Agents**: Project Context Agent (called first in every workflow), all specialist agents (Code, Jira, GitLab, Confluence, Jenkins, SonarQube, Security, Test)
 **Documentation**: See docs/onboarding.md for user-facing guide

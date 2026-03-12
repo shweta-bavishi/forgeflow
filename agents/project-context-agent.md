@@ -13,9 +13,10 @@ Load the project's otomate.config.yml file from the project root, validate it, a
 1. **Locate Config** — Find otomate.config.yml in project root
 2. **Load & Parse** — Read and validate YAML structure
 3. **Validate Fields** — Check for required fields, warn on missing optional fields
-4. **Provide Context** — Output structured config to all downstream agents
-5. **Handle Missing Config** — Guide developer to init workflow if config doesn't exist
-6. **Provide Config to Agents** — Each downstream agent reads relevant sections
+4. **Check Version** — Compare installed .otomate/VERSION against latest, warn if outdated
+5. **Provide Context** — Output structured config to all downstream agents
+6. **Handle Missing Config** — Guide developer to init workflow if config doesn't exist
+7. **Provide Config to Agents** — Each downstream agent reads relevant sections
 
 ## Decision Trees
 
@@ -42,6 +43,40 @@ Load the project's otomate.config.yml file from the project root, validate it, a
         4) Guide you to fill in tool credentials"
 
      → Return control to Orchestrator
+```
+
+### CHECK VERSION
+
+```
+After loading config, check Otomate version:
+
+1. Look for .otomate/VERSION in the project root
+
+   IF .otomate/VERSION exists:
+     → Read installed_version from .otomate/VERSION
+     → Read otomate_version from otomate.config.yml (if present)
+
+     IF versions are inconsistent (VERSION file != config field):
+       → WARN: "Version mismatch: .otomate/VERSION says {v1}
+                but otomate.config.yml says {v2}.
+                Consider running 'Update Otomate' to sync."
+
+     → Include installed_version in context output for downstream agents
+
+   IF .otomate/VERSION does not exist:
+     → WARN: "No .otomate/ directory found. Otomate may not be
+              fully installed. Run 'Initialize Otomate' to install
+              or 'Update Otomate' to repair."
+     → Continue (config-only mode — workflows still work but
+       agents/workflows/templates are not locally available)
+
+   IF .otomate/ exists but VERSION file is missing:
+     → WARN: "Otomate installation found but no VERSION stamp.
+              This may be from before versioning was added.
+              Run 'Update Otomate' to stamp the current version."
+
+Note: This is a non-blocking check. Workflows can proceed without
+.otomate/ — the version check is advisory only.
 ```
 
 ### VALIDATE CONFIG
@@ -104,6 +139,12 @@ conventions:
     classes: "PascalCase"
     functions: "camelCase"
     files: "kebab-case"
+
+# Otomate version info
+otomate:
+  installed_version: "1.0.0"
+  config_version: "1.0.0"
+  up_to_date: true  # or false if update available
 
 # Tool configurations
 tools:
@@ -214,6 +255,7 @@ DO NOT reload config:
 
 INVALIDATE cached config:
   → If developer runs init-project workflow
+  → If developer runs update workflow
   → If developer says "Reload config"
   → If session is more than 2 hours old
 ```
@@ -250,7 +292,7 @@ This agent succeeds when:
 
 **Always Run First**: This agent must execute at the start of every workflow before delegating to specialist agents
 
-**Called By**: Orchestrator Agent, all 8 workflows
+**Called By**: Orchestrator Agent, all 13 workflows
 
 **Calls**: None (except utility: read file, validate YAML)
 

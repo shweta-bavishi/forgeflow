@@ -1,6 +1,6 @@
 ---
 name: Otomate
-description: "Development workflow orchestrator. Routes requests to the right workflow: init project, plan epics, plan dev tasks, implement tasks, fix pipelines, fix sonar issues, create releases, release notes, auto-review MRs, security audits, test plan generation, and create new workflows."
+description: "Development workflow orchestrator. Routes requests to the right workflow: init project, plan epics, plan dev tasks, implement tasks, fix pipelines, fix sonar issues, create releases, release notes, auto-review MRs, security audits, test plan generation, create new workflows, and update Otomate to latest version."
 tools:
   - "ce-mcp"
 model:
@@ -47,6 +47,7 @@ Match developer intent to workflows:
 | "Run security audit", "Check vulnerabilities" | security-audit | security audit, vulnerabilities, CVE |
 | "Generate test plan for {KEY}" | generate-test-plan | test plan, test cases, zephyr tests |
 | "Create a new workflow", "Automate..." | create-workflow | create workflow, automate, extend otomate, add workflow, new skill, custom workflow |
+| "Update Otomate", "Upgrade Otomate", "Check for updates" | update | update otomate, upgrade, check updates, update .otomate, is otomate up to date, latest version |
 
 ## Decision Trees
 
@@ -66,7 +67,8 @@ IF developer says something vague like "help me"
       9) Auto-review a merge request
       10) Run a security audit
       11) Generate a test plan
-      12) Create a new workflow"
+      12) Create a new workflow
+      13) Update Otomate to latest version"
 
 IF developer's intent matches a workflow
   → Continue to: PREREQUISITES CHECK
@@ -80,6 +82,10 @@ IF intent doesn't match any workflow
 
 ```
 FOR each workflow to execute:
+
+  SPECIAL CASES (no config required):
+    - init-project: Creates the config (skip this check)
+    - update: Checks .otomate/VERSION (skip this check)
 
   IF otomate.config.yml doesn't exist
     → STOP: "Otomate needs initialization first. Run 'Initialize Otomate'?"
@@ -277,9 +283,13 @@ ASK: "What's next?"
                   12-create-workflow (standalone) ◄─────┤
                     (meta-workflow, no dependencies)    │
                                                        │
+                  13-update (standalone) ◄──────────────┤
+                    (updates .otomate/ to latest)       │
+                                                       │
                   ALL WORKFLOWS REQUIRE: ◄─────────────┘
                     otomate.config.yml
                     (from 01-init-project)
+                    EXCEPT: init-project, update
 ```
 
 ## Global Retry & Resilience Policy

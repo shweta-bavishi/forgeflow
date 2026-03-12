@@ -3,6 +3,11 @@
 # Every field is documented below with description, type, and example value.
 
 # ============================================================================
+# OTOMATE VERSION (auto-set by init/update workflows — do not edit manually)
+# ============================================================================
+otomate_version: "1.0.0"
+
+# ============================================================================
 # PROJECT IDENTITY
 # ============================================================================
 project:

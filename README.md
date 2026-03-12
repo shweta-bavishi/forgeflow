@@ -8,8 +8,8 @@ Otomate is a collection of **markdown-based agents and workflows** that run insi
 
 ### Key Features
 
-🚀 **11 Complete Workflows**
-- Initialize project with auto-detection
+🚀 **13 Complete Workflows**
+- Initialize project with auto-detection (can run from outside the project)
 - Plan epics from Confluence requirements
 - Break epics into dev tasks
 - Implement tasks with full code generation
@@ -20,6 +20,8 @@ Otomate is a collection of **markdown-based agents and workflows** that run insi
 - **Auto-review merge requests** with 6-dimension analysis
 - **Security audit** with Nexus IQ + SonarQube vulnerability analysis
 - **Generate test plans** with Zephyr test case creation
+- **Create custom workflows** via meta-workflow with feasibility analysis
+- **Update Otomate** to latest version with version checking
 
 🤖 **10 Specialized Agents**
 Each agent is an expert in its domain with deep knowledge of patterns, conventions, and best practices:
@@ -51,20 +53,15 @@ Every critical action requires developer approval. No surprises. Workflows guide
 ✓ MCP server configured with access to your tools (Jira, GitLab, etc.)
 ✓ Credentials set up (JIRA_TOKEN, GITLAB_TOKEN, etc.)
 
-### 2. Install Otomate
+### 2. Initialize Your Project
 
-Copy the complete `.otomate/` directory into your project root:
+You can initialize from **inside or outside** the target project. In Copilot Chat, say:
 
-```bash
-git clone https://github.com/your-org/otomate.git
-cp -r otomate/. your-project/.otomate/
+```
+Initialize Otomate at /path/to/your-project
 ```
 
-Or use the init workflow (see below).
-
-### 3. Initialize Your Project
-
-In Copilot Chat, say:
+Or from inside your project directory:
 
 ```
 Initialize Otomate
@@ -76,6 +73,8 @@ Otomate will:
 3. Auto-fill config with detected values
 4. Ask for missing credentials/IDs
 5. Create `otomate.config.yml`
+6. Copy the full Otomate system into `.otomate/` directory
+7. Stamp the installed version in `.otomate/VERSION`
 
 ### 4. Try Your First Workflow
 
@@ -91,11 +90,11 @@ Implement PROJ-123
 
 Done! You're using Otomate.
 
-## The 11 Workflows
+## The 13 Workflows
 
 | Workflow | Trigger | Output | Time |
 |----------|---------|--------|------|
-| **01 — Init Project** | "Initialize Otomate" | Config file + .otomate/ directory | 5-10 min |
+| **01 — Init Project** | "Initialize Otomate" or "Init project at {path}" | Config file + .otomate/ directory (versioned) | 5-10 min |
 | **02 — Plan Epics** | "Plan epics from Confluence {url}" | Jira epics + updated Confluence | 15 min |
 | **03 — Plan Dev Tasks** | "Plan dev tasks for {EPIC-KEY}" | Jira tasks with technical specs | 20 min |
 | **04 — Implement Dev Task** | "Implement {JIRA-KEY}" | Code files + Git branch + MR | 45 min |
@@ -106,6 +105,8 @@ Done! You're using Otomate.
 | **09 — MR Auto-Review** | "Review my MR" | 6-dimension review + MR comment | 15-25 min |
 | **10 — Security Audit** | "Run security audit" | Vulnerability report + fix MR/Jira | 20-40 min |
 | **11 — Generate Test Plan** | "Generate test plan for {KEY}" | Zephyr test cases linked to stories | 15-30 min |
+| **12 — Create Workflow** | "Create a new workflow" | New SKILL.md + MR via feasibility analysis | 10-20 min |
+| **13 — Update** | "Update Otomate" | Updated .otomate/ with latest version | 2-5 min |
 
 ## Architecture Overview
 
@@ -173,6 +174,8 @@ Done! You're using Otomate.
 Every project needs one file: `otomate.config.yml`
 
 ```yaml
+otomate_version: "1.0.0"   # Tracks which Otomate version generated this config
+
 project:
   name: my-awesome-api
   language: typescript
@@ -208,6 +211,7 @@ otomate/
 ├── README.md (you're here)
 ├── SETUP.md (detailed setup guide)
 ├── ARCHITECTURE.md (technical design)
+├── VERSION (current Otomate version)
 │
 ├── agents/
 │   ├── otomate-orchestrator.md
@@ -232,7 +236,9 @@ otomate/
 │   ├── 08-create-release-note.md
 │   ├── 09-mr-auto-review.md
 │   ├── 10-security-audit.md
-│   └── 11-generate-test-plan.md
+│   ├── 11-generate-test-plan.md
+│   ├── 12-create-workflow.md
+│   └── 13-update.md
 │
 ├── templates/
 │   ├── mr-description.md

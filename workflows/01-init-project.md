@@ -1,16 +1,88 @@
 # Workflow 01: Initialize Project
 
-**Goal**: Scan a repository structure, auto-detect project details, and generate a complete `otomate.config.yml` file tailored to the project.
+**Goal**: Initialize Otomate for a target project — scan its repository structure, auto-detect project details, generate a complete `otomate.config.yml`, and copy the full Otomate system into the project's `.otomate/` directory.
 
-**Trigger**: "Initialize Otomate", "Set up Otomate", "Init project"
+**Trigger**: "Initialize Otomate", "Set up Otomate", "Init project", "Init project at {path}"
 
 **Agents**: Orchestrator → Code Agent, Project Context Agent
 
 **Time**: ~10 minutes (mostly interactive)
 
+## Input
+
+The developer provides a **reference to the project folder** they want to initialize. This workflow can be run from OUTSIDE the target project.
+
+```
+REQUIRED: project_path — absolute or relative path to the target project folder
+
+Examples:
+  "Init project at /home/dev/my-awesome-api"
+  "Initialize Otomate for ../my-awesome-api"
+  "Set up Otomate" (defaults to current working directory)
+
+IF no path provided:
+  → Ask: "Which project folder do you want to initialize?
+          Provide the path (absolute or relative) or press enter for current directory."
+  → Default: current working directory
+```
+
+## Phase 0: PRE-FLIGHT — Check Initialization Status
+
+Before doing anything else, check if the target project has already been initialized.
+
+```
+STEP 1 — Validate project path:
+  IF path does not exist:
+    → STOP: "The path '{project_path}' does not exist. Please provide a valid project path."
+  IF path is not a directory:
+    → STOP: "The path '{project_path}' is not a directory."
+  IF path is not a git repository (no .git/ folder):
+    → WARN: "This directory is not a git repository. Some auto-detection features
+             (commit patterns, branch naming) will be limited."
+    → Ask: "Continue anyway?"
+
+STEP 2 — Check for existing initialization:
+  Look for: {project_path}/.otomate/ directory
+
+  IF .otomate/ EXISTS:
+    → Check: {project_path}/.otomate/VERSION
+    → Read current version from .otomate/VERSION
+    → Read latest version from {otomate_source}/VERSION
+
+    IF versions match:
+      → INFORM: "This project is already initialized with Otomate v{version}.
+                 Config file: {project_path}/otomate.config.yml
+                 Otomate files: {project_path}/.otomate/
+
+                 If you want to update Otomate to the latest version, use:
+                 'Update Otomate' workflow instead.
+
+                 If you want to RE-INITIALIZE (overwrite existing config), say:
+                 'Force re-initialize Otomate'"
+      → STOP (unless developer says force re-initialize)
+
+    IF versions differ:
+      → INFORM: "This project has Otomate v{current_version} installed.
+                 Latest available version is v{latest_version}.
+                 Use 'Update Otomate' to upgrade.
+                 Use 'Force re-initialize' to start fresh (will overwrite config)."
+      → STOP (unless developer says force re-initialize)
+
+  IF .otomate/ DOES NOT EXIST:
+    → Continue to Phase 1 (fresh initialization)
+
+STEP 3 — Handle force re-initialize:
+  IF developer requests force re-initialize:
+    → WARN: "This will overwrite your existing otomate.config.yml and .otomate/ directory.
+             Any customizations you've made to these files will be lost."
+    → 🚦 HITL GATE: "Are you sure you want to re-initialize? (yes/no)"
+    → IF yes: Continue to Phase 1
+    → IF no: STOP
+```
+
 ## Phase 1: SCAN REPOSITORY
 
-Code Agent reads key files to detect project characteristics:
+Code Agent reads key files from the **target project** to detect project characteristics:
 
 ### Language Detection
 
@@ -268,6 +340,9 @@ Note: Page IDs must be provided manually
 Generate complete `otomate.config.yml` and show to developer:
 
 ```yaml
+# Otomate version that generated this config
+otomate_version: "1.0.0"
+
 project:
   name: "my-awesome-api"          ✓ Auto-detected
   description: "REST API..."      ✓ From README.md
@@ -339,42 +414,72 @@ Support multi-round refinement:
   ...
 ```
 
-## Phase 6: SAVE CONFIGURATION
+## Phase 6: SAVE CONFIGURATION & INSTALL OTOMATE
 
 ```
 STEP 1 — Finalize config:
   Ask developer for remaining missing values
   Fill in all required fields
+  Add otomate_version field with current version from {otomate_source}/VERSION
 
 STEP 2 — Write otomate.config.yml:
-  Save to project root: otomate.config.yml
+  Save to: {project_path}/otomate.config.yml
 
-STEP 3 — Create .otomate/ folder structure:
-  mkdir .otomate/
-  Copy agents/ folder from template
-  Copy workflows/ folder from template
-  Copy templates/ folder from template
-  Copy config/ folder from template (config ref, tools reference)
+STEP 3 — Copy Otomate system into .otomate/ folder:
+  Source: {otomate_source}/ (the Otomate repository root)
+  Destination: {project_path}/.otomate/
 
-STEP 4 — Add to .gitignore:
-  Check if otomate.config.yml should be in .gitignore
-  (Yes if it contains secrets or is project-specific)
+  Copy the following directories and files:
+    {otomate_source}/agents/           → {project_path}/.otomate/agents/
+    {otomate_source}/workflows/        → {project_path}/.otomate/workflows/
+    {otomate_source}/templates/        → {project_path}/.otomate/templates/
+    {otomate_source}/config/           → {project_path}/.otomate/config/
+    {otomate_source}/docs/             → {project_path}/.otomate/docs/
+    {otomate_source}/scripts/          → {project_path}/.otomate/scripts/
+    {otomate_source}/.github/          → {project_path}/.otomate/.github/
+    {otomate_source}/VERSION           → {project_path}/.otomate/VERSION
+    {otomate_source}/README.md         → {project_path}/.otomate/README.md
+    {otomate_source}/SETUP.md          → {project_path}/.otomate/SETUP.md
+    {otomate_source}/ARCHITECTURE.md   → {project_path}/.otomate/ARCHITECTURE.md
 
-STEP 5 — Verify setup:
-  Confirm: otomate.config.yml exists in root
-  Confirm: .otomate/ folder structure is complete
-  Confirm: All required fields are populated
+  DO NOT copy:
+    - .git/ directory
+    - otomate.config.yml (this is project-specific, already written to project root)
+    - .gitattributes (project may have its own)
+    - Any temporary or build files
+
+STEP 4 — Write VERSION file:
+  Write {otomate_source}/VERSION content to {project_path}/.otomate/VERSION
+  This stamps the installed version so the update workflow can compare later.
+
+STEP 5 — Add to .gitignore (suggest):
+  Check if {project_path}/.gitignore exists
+  Suggest adding:
+    # Otomate config (may contain project-specific values)
+    # otomate.config.yml
+
+  Note: .otomate/ directory SHOULD be committed so the team shares the same workflows.
+  But otomate.config.yml may be project-specific with values that differ per-developer.
+
+STEP 6 — Verify setup:
+  Confirm: otomate.config.yml exists at {project_path}/otomate.config.yml
+  Confirm: .otomate/ folder structure is complete at {project_path}/.otomate/
+  Confirm: .otomate/VERSION matches source VERSION
+  Confirm: All required config fields are populated
 
 Show developer:
-  ✓ Otomate is initialized!
-  ✓ Config saved to: otomate.config.yml
+  ✓ Otomate v{version} is initialized!
+  ✓ Config saved to: {project_path}/otomate.config.yml
+  ✓ Otomate system installed to: {project_path}/.otomate/
+  ✓ Version: {version}
   ✓ Agents loaded: {list}
-  ✓ Next: Try a workflow!
+  ✓ Workflows available: {count}
 
-  Example next steps:
+  Next steps:
     - "Plan epics": Load requirements from Confluence
     - "Implement task": Pick a Jira ticket and start coding
     - "Fix pipeline": Debug a failed build
+    - "Update Otomate": Update to latest version when available
 ```
 
 ## Error Handling
@@ -416,6 +521,25 @@ Action:
   4. Continue
 ```
 
+### If project path is invalid
+
+```
+Action:
+  1. Show: "The path '{project_path}' does not exist or is not accessible."
+  2. Ask: "Please provide a valid path to your project directory."
+  3. Suggest: Use absolute paths for clarity (e.g., /home/dev/my-project)
+```
+
+### If .otomate copy fails
+
+```
+Action:
+  1. Show: "Failed to copy Otomate files to {project_path}/.otomate/"
+  2. Show: Specific error (permission denied, disk full, etc.)
+  3. Suggest: "Try manually: cp -r {otomate_source}/* {project_path}/.otomate/"
+  4. Offer: "Continue without .otomate/ copy? (config will still be created)"
+```
+
 ## Success Criteria
 
 ✓ Config file is complete and valid
@@ -423,14 +547,22 @@ Action:
 ✓ Optional fields have sensible defaults
 ✓ Developer understands what each field means
 ✓ Developer feels confident about the configuration
+✓ .otomate/ directory is fully populated with latest Otomate version
+✓ VERSION file is stamped in .otomate/
 ✓ Next workflow can proceed without additional setup
 
 ---
 
 **Duration**: 5-10 minutes (mostly auto-detection + 2-3 minutes Q&A)
 
-**What It Creates**: `otomate.config.yml` + `.otomate/` directory structure
+**What It Creates**:
+- `otomate.config.yml` — project-specific configuration
+- `.otomate/` — complete Otomate system (agents, workflows, templates, docs, skills)
+- `.otomate/VERSION` — installed version stamp
 
-**Next Workflow**: Any of the 7 remaining workflows (02-08)
+**Next Workflow**: Any of the remaining workflows (02-13)
 
-**Related**: docs/onboarding.md (user guide), config/otomate.config.example.yml (template)
+**Related**:
+- docs/onboarding.md (user guide)
+- config/otomate.config.example.yml (template)
+- Workflow 13: Update (to upgrade .otomate/ to latest version)

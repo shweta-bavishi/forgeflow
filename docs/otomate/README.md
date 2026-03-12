@@ -7,7 +7,7 @@ Otomate is a multi-agent development workflow system built on VS Code Copilot's 
 Otomate uses VS Code Copilot's **native agent, skill, and instruction** mechanism:
 
 - **4 Custom Agents** (`.github/agents/`) — Appear in Copilot agent dropdown
-- **12 Workflow Skills** (`.github/skills/`) — Auto-discovered and loaded on-demand
+- **13 Workflow Skills** (`.github/skills/`) — Auto-discovered and loaded on-demand
 - **3 Custom Instructions** (`.github/instructions/`) — Always-on context rules
 - **1 Global Instructions** (`.github/copilot-instructions.md`) — Standard Copilot config
 
@@ -36,6 +36,7 @@ Otomate uses VS Code Copilot's **native agent, skill, and instruction** mechanis
 | 10 | security-audit | "Run security audit" | Nexus IQ + SonarQube audit |
 | 11 | generate-test-plan | "Generate tests for PROJ-123" | Acceptance criteria → Zephyr tests |
 | 12 | create-workflow | "Create a new workflow" | Describe automation → feasibility analysis → generate SKILL.md |
+| 13 | update | "Update Otomate" | Check installed version → update .otomate/ to latest |
 
 ### MCP Tool Domains (113 tools)
 
@@ -59,7 +60,7 @@ Otomate uses VS Code Copilot's **native agent, skill, and instruction** mechanis
 2. Select the **Otomate** agent from the Copilot dropdown
 3. Say: **"Initialize Otomate"**
 4. Otomate scans your repo and generates `otomate.config.yml`
-5. Start using any of the 11 workflows
+5. Start using any of the 13 workflows
 
 ## Key Design Principles
 
@@ -68,6 +69,7 @@ Otomate uses VS Code Copilot's **native agent, skill, and instruction** mechanis
 - **Agentic**: Goal-oriented decision trees, not linear checklists
 - **TRY → FALLBACK → ASK**: Resilient error handling for every tool call
 - **Token-optimized**: Skills load on-demand (only when prompt matches)
+- **Versioned**: `VERSION` file tracks releases; init stamps version into projects; update workflow keeps projects current
 
 ## Project Structure
 
@@ -100,12 +102,14 @@ Otomate uses VS Code Copilot's **native agent, skill, and instruction** mechanis
     security-audit/SKILL.md
     generate-test-plan/SKILL.md
     create-workflow/SKILL.md
+    update/SKILL.md
   instructions/
     otomate-context.instructions.md   # Always-on context (applyTo: **)
     coding-standards.instructions.md    # Source-only (applyTo: src/**)
     hitl-rules.instructions.md          # Always-on HITL rules (applyTo: **)
   copilot-instructions.md              # Global Copilot instructions
-otomate.config.yml                    # Project configuration
+otomate.config.yml                    # Project configuration (includes otomate_version)
+VERSION                               # Current Otomate version
 templates/
   mr-description.md                    # MR description template
   changelog.md                         # Changelog template

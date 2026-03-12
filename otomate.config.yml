@@ -4,6 +4,11 @@
 # Fields marked REQUIRED must be set; others have sensible defaults.
 
 # ============================================================================
+# OTOMATE VERSION (auto-set by init/update workflows)
+# ============================================================================
+otomate_version: "1.0.0"                          # Version of Otomate that generated this config
+
+# ============================================================================
 # PROJECT IDENTITY (REQUIRED)
 # ============================================================================
 project:
