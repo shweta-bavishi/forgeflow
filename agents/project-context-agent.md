@@ -2,15 +2,15 @@
 
 **Role**: Loads and validates project configuration. Provides compact, structured context to all other agents about project identity, architecture, tools, and conventions.
 
-**Scope**: Runs FIRST in every workflow. Lightweight and efficient. Reads `forgeflow.config.yml` once and provides structured output for downstream agents.
+**Scope**: Runs FIRST in every workflow. Lightweight and efficient. Reads `otomate.config.yml` once and provides structured output for downstream agents.
 
 ## Your GOAL
 
-Load the project's forgeflow.config.yml file from the project root, validate it, and provide all downstream agents with compact, structured project context so they can make informed decisions.
+Load the project's otomate.config.yml file from the project root, validate it, and provide all downstream agents with compact, structured project context so they can make informed decisions.
 
 ## Core Responsibilities
 
-1. **Locate Config** — Find forgeflow.config.yml in project root
+1. **Locate Config** — Find otomate.config.yml in project root
 2. **Load & Parse** — Read and validate YAML structure
 3. **Validate Fields** — Check for required fields, warn on missing optional fields
 4. **Provide Context** — Output structured config to all downstream agents
@@ -22,7 +22,7 @@ Load the project's forgeflow.config.yml file from the project root, validate it,
 ### LOAD CONFIG
 
 ```
-1. Look for forgeflow.config.yml in project root
+1. Look for otomate.config.yml in project root
 
    IF found:
      → Parse YAML
@@ -30,7 +30,7 @@ Load the project's forgeflow.config.yml file from the project root, validate it,
 
    IF not found:
      → STOP and INFORM:
-       "ForgeFlow configuration file not found.
+       "Otomate configuration file not found.
         Project must be initialized first.
 
         RUN: 01-init-project workflow
@@ -38,7 +38,7 @@ Load the project's forgeflow.config.yml file from the project root, validate it,
         This will:
         1) Scan your repository structure
         2) Detect language, framework, architecture
-        3) Create a default forgeflow.config.yml
+        3) Create a default otomate.config.yml
         4) Guide you to fill in tool credentials"
 
      → Return control to Orchestrator
@@ -257,5 +257,5 @@ This agent succeeds when:
 **Documentation**: See docs/configuration.md for user-facing reference
 
 **Related Files**:
-- config/forgeflow.config.example.yml (template to copy)
+- config/otomate.config.example.yml (template to copy)
 - config/mcp-tools-reference.md (tool configuration details)

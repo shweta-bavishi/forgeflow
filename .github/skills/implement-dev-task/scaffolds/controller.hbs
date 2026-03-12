@@ -1,0 +1,98 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  ParseIntPipe,
+} from '@nestjs/common';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { {{pascalCase name}}Service } from '../services/{{kebabCase name}}.service';
+import { Create{{pascalCase name}}Dto } from '../dto/create-{{kebabCase name}}.dto';
+import { Update{{pascalCase name}}Dto } from '../dto/update-{{kebabCase name}}.dto';
+
+/**
+ * Controller for {{pascalCase name}} resource management.
+ * Handles CRUD operations via REST endpoints.
+ *
+ * @class {{pascalCase name}}Controller
+ */
+@Controller('{{kebabCase name}}s')
+@UseGuards(JwtAuthGuard)
+export class {{pascalCase name}}Controller {
+  constructor(private readonly {{camelCase name}}Service: {{pascalCase name}}Service) {}
+
+  /**
+   * Create a new {{camelCase name}}.
+   *
+   * @param dto - The creation payload
+   * @returns The created {{camelCase name}} entity
+   * @throws BadRequestException if validation fails
+   */
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async create(@Body() dto: Create{{pascalCase name}}Dto) {
+    return await this.{{camelCase name}}Service.create(dto);
+  }
+
+  /**
+   * Retrieve all {{camelCase name}}s with optional pagination.
+   *
+   * @param page - Page number (default: 1)
+   * @param limit - Items per page (default: 20)
+   * @returns Paginated list of {{camelCase name}} entities
+   */
+  @Get()
+  async findAll(
+    @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 20,
+  ) {
+    return await this.{{camelCase name}}Service.findAll({ page, limit });
+  }
+
+  /**
+   * Retrieve a single {{camelCase name}} by ID.
+   *
+   * @param id - The {{camelCase name}} ID
+   * @returns The {{camelCase name}} entity
+   * @throws NotFoundException if not found
+   */
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.{{camelCase name}}Service.findOne(id);
+  }
+
+  /**
+   * Update an existing {{camelCase name}}.
+   *
+   * @param id - The {{camelCase name}} ID
+   * @param dto - The update payload
+   * @returns The updated {{camelCase name}} entity
+   * @throws NotFoundException if not found
+   */
+  @Put(':id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: Update{{pascalCase name}}Dto,
+  ) {
+    return await this.{{camelCase name}}Service.update(id, dto);
+  }
+
+  /**
+   * Delete a {{camelCase name}} by ID.
+   *
+   * @param id - The {{camelCase name}} ID
+   * @throws NotFoundException if not found
+   */
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    return await this.{{camelCase name}}Service.remove(id);
+  }
+}

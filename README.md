@@ -1,10 +1,10 @@
-# ForgeFlow — Multi-Agent Development Workflow Orchestrator
+# Otomate — Multi-Agent Development Workflow Orchestrator
 
 A powerful, config-driven system for automating the complete software development lifecycle using AI-powered agents and Model Context Protocol (MCP) tools.
 
-## What is ForgeFlow?
+## What is Otomate?
 
-ForgeFlow is a collection of **markdown-based agents and workflows** that run inside your IDE's Copilot Chat (VS Code/JetBrains). It orchestrates complex development tasks across Jira, GitLab, Confluence, Jenkins, and SonarQube without requiring any executable code or server infrastructure.
+Otomate is a collection of **markdown-based agents and workflows** that run inside your IDE's Copilot Chat (VS Code/JetBrains). It orchestrates complex development tasks across Jira, GitLab, Confluence, Jenkins, and SonarQube without requiring any executable code or server infrastructure.
 
 ### Key Features
 
@@ -38,7 +38,7 @@ Each agent is an expert in its domain with deep knowledge of patterns, conventio
 Pre-configured access to Jira, GitLab, Confluence, Jenkins, SonarQube, and more. Every workflow uses these tools to interact with your development infrastructure.
 
 ⚙️ **Fully Config-Driven**
-Single `forgeflow.config.yml` file defines your entire project setup. Change config, not code. Same ForgeFlow works across all your projects.
+Single `otomate.config.yml` file defines your entire project setup. Change config, not code. Same Otomate works across all your projects.
 
 🚦 **Human-in-the-Loop (HITL)**
 Every critical action requires developer approval. No surprises. Workflows guide you through decision points with clear options.
@@ -51,13 +51,13 @@ Every critical action requires developer approval. No surprises. Workflows guide
 ✓ MCP server configured with access to your tools (Jira, GitLab, etc.)
 ✓ Credentials set up (JIRA_TOKEN, GITLAB_TOKEN, etc.)
 
-### 2. Install ForgeFlow
+### 2. Install Otomate
 
-Copy the complete `.forgeflow/` directory into your project root:
+Copy the complete `.otomate/` directory into your project root:
 
 ```bash
-git clone https://github.com/your-org/forgeflow.git
-cp -r forgeflow/. your-project/.forgeflow/
+git clone https://github.com/your-org/otomate.git
+cp -r otomate/. your-project/.otomate/
 ```
 
 Or use the init workflow (see below).
@@ -67,15 +67,15 @@ Or use the init workflow (see below).
 In Copilot Chat, say:
 
 ```
-Initialize ForgeFlow
+Initialize Otomate
 ```
 
-ForgeFlow will:
+Otomate will:
 1. Scan your repository
 2. Detect language, framework, architecture
 3. Auto-fill config with detected values
 4. Ask for missing credentials/IDs
-5. Create `forgeflow.config.yml`
+5. Create `otomate.config.yml`
 
 ### 4. Try Your First Workflow
 
@@ -89,13 +89,13 @@ Or:
 Implement PROJ-123
 ```
 
-Done! You're using ForgeFlow.
+Done! You're using Otomate.
 
 ## The 11 Workflows
 
 | Workflow | Trigger | Output | Time |
 |----------|---------|--------|------|
-| **01 — Init Project** | "Initialize ForgeFlow" | Config file + .forgeflow/ directory | 5-10 min |
+| **01 — Init Project** | "Initialize Otomate" | Config file + .otomate/ directory | 5-10 min |
 | **02 — Plan Epics** | "Plan epics from Confluence {url}" | Jira epics + updated Confluence | 15 min |
 | **03 — Plan Dev Tasks** | "Plan dev tasks for {EPIC-KEY}" | Jira tasks with technical specs | 20 min |
 | **04 — Implement Dev Task** | "Implement {JIRA-KEY}" | Code files + Git branch + MR | 45 min |
@@ -170,7 +170,7 @@ Done! You're using ForgeFlow.
 
 ## Configuration
 
-Every project needs one file: `forgeflow.config.yml`
+Every project needs one file: `otomate.config.yml`
 
 ```yaml
 project:
@@ -204,13 +204,13 @@ Run the **Init Project** workflow to auto-generate this.
 ## Project Structure
 
 ```
-forgeflow/
+otomate/
 ├── README.md (you're here)
 ├── SETUP.md (detailed setup guide)
 ├── ARCHITECTURE.md (technical design)
 │
 ├── agents/
-│   ├── forgeflow-orchestrator.md
+│   ├── otomate-orchestrator.md
 │   ├── project-context-agent.md
 │   ├── code-agent.md
 │   ├── jira-agent.md
@@ -247,7 +247,7 @@ forgeflow/
 │           └── test.hbs
 │
 ├── config/
-│   ├── forgeflow.config.example.yml
+│   ├── otomate.config.example.yml
 │   └── mcp-tools-reference.md
 │
 ├── scripts/
@@ -306,7 +306,7 @@ forgeflow/
 
 ### Why These Limitations?
 
-By design. ForgeFlow prioritizes **safety** over full automation:
+By design. Otomate prioritizes **safety** over full automation:
 - Manual merge approval prevents accidents
 - Developer stays in control of releases
 - Reversible operations are the only automated ones
@@ -331,16 +331,16 @@ By design. ForgeFlow prioritizes **safety** over full automation:
 🤔 **Questions?**
 - Check [docs/onboarding.md](docs/onboarding.md) for first-time setup
 - See [docs/troubleshooting.md](docs/troubleshooting.md) for common issues
-- Open an issue: [GitHub Issues](https://github.com/your-org/forgeflow/issues)
+- Open an issue: [GitHub Issues](https://github.com/your-org/otomate/issues)
 
 💬 **Community**
-- Discussions: [GitHub Discussions](https://github.com/your-org/forgeflow/discussions)
-- Slack: #forgeflow channel
+- Discussions: [GitHub Discussions](https://github.com/your-org/otomate/discussions)
+- Slack: #otomate channel
 - Office hours: [Calendar link]
 
 ## Contributing
 
-Want to extend ForgeFlow?
+Want to extend Otomate?
 
 1. Add new workflow in `workflows/XX-workflow-name.md`
 2. Create specialist agent in `agents/new-agent.md`
@@ -352,7 +352,7 @@ See [docs/contributing.md](docs/contributing.md) for detailed guide.
 
 ## License
 
-ForgeFlow is open source. See LICENSE file.
+Otomate is open source. See LICENSE file.
 
 ## Credits
 
@@ -370,8 +370,8 @@ Created by the Development Infrastructure team.
 
 **Want to learn more?** → [ARCHITECTURE.md](ARCHITECTURE.md)
 
-**Jump right in?** → Initialize your project now: "Initialize ForgeFlow"
+**Jump right in?** → Initialize your project now: "Initialize Otomate"
 
 ---
 
-*ForgeFlow — Automate your development lifecycle with AI-powered agents*
+*Otomate — Automate your development lifecycle with AI-powered agents*

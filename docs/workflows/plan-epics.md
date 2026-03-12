@@ -16,18 +16,18 @@
 |---|---|
 | Confluence page | Page must exist and be accessible via `get_confluence_page_full_content` |
 | Jira project | Must be accessible; `get_jira_project_info` must return valid metadata |
-| Config | `forgeflow.config.yml` loaded with `jira.project_key` and `confluence.space_key` |
+| Config | `otomate.config.yml` loaded with `jira.project_key` and `confluence.space_key` |
 
 ## How to Trigger
 
 ```
-@forgeflow plan epics from confluence page 123456
+@otomate plan epics from confluence page 123456
 ```
 
 Or provide the page title:
 
 ```
-@forgeflow create epics from "Q3 Feature Requirements"
+@otomate create epics from "Q3 Feature Requirements"
 ```
 
 ## What Happens

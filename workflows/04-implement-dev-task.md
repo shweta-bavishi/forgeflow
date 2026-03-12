@@ -289,7 +289,7 @@ Call: update_jira_issue(
 
 Add comment:
   "Branch: feature/PROJ-123-avatar-upload
-   Implementation started via ForgeFlow"
+   Implementation started via Otomate"
 ```
 
 ## Phase 8: 🚦 HITL GATE — Approve Push & MR

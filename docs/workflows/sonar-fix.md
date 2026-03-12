@@ -21,13 +21,13 @@
 ## How to Trigger
 
 ```
-@forgeflow fix sonar issues
+@otomate fix sonar issues
 ```
 
 Or filter by severity:
 
 ```
-@forgeflow fix sonar blockers and criticals
+@otomate fix sonar blockers and criticals
 ```
 
 ## What Happens
@@ -89,7 +89,7 @@ You approve which fixes to apply.
 
 ### Phase 5 — Commit Fixes
 
-Approved fixes are committed via `commit_file_and_create_mr` on a branch like `forgeflow/sonar-fixes-20260311`.
+Approved fixes are committed via `commit_file_and_create_mr` on a branch like `otomate/sonar-fixes-20260311`.
 
 ## MCP Tools Used
 

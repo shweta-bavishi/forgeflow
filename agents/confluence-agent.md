@@ -191,7 +191,7 @@ STEP 1 — Fetch current content:
 STEP 2 — Prepare new content:
   - What section to add?
   - Where in page structure?
-  - Example: Add "## Created Epics (via ForgeFlow)" section
+  - Example: Add "## Created Epics (via Otomate)" section
 
 STEP 3 — Merge:
   Append new section to existing body
@@ -199,7 +199,7 @@ STEP 3 — Merge:
     [existing content]
     ...
 
-    ## Created Epics (via ForgeFlow)
+    ## Created Epics (via Otomate)
     [new table or list]
 
 STEP 4 — Update page:

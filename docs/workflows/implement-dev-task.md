@@ -15,19 +15,19 @@
 | Requirement | Details |
 |---|---|
 | Jira ticket | Sub-task or story accessible via `get_jira_issue` |
-| Config loaded | Full `forgeflow.config.yml` with coding standards, GitLab, and Jira settings |
+| Config loaded | Full `otomate.config.yml` with coding standards, GitLab, and Jira settings |
 | Repository | Codebase accessible via GitLab MCP tools |
 
 ## How to Trigger
 
 ```
-@forgeflow implement PROJ-101
+@otomate implement PROJ-101
 ```
 
 Or with additional context:
 
 ```
-@forgeflow implement PROJ-101 — focus on the service layer, skip controller for now
+@otomate implement PROJ-101 — focus on the service layer, skip controller for now
 ```
 
 ## What Happens — 10 Phases

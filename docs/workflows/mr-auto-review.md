@@ -15,26 +15,26 @@
 | Requirement | Details |
 |---|---|
 | Open MR | An open merge request in GitLab |
-| Config loaded | `forgeflow.config.yml` with `coding_standards`, `architecture`, and `auto_review` sections |
+| Config loaded | `otomate.config.yml` with `coding_standards`, `architecture`, and `auto_review` sections |
 | SonarQube (optional) | For quality gate and coverage checks |
 | Jira (optional) | For acceptance criteria alignment checks |
 
 ## How to Trigger
 
 ```
-@forgeflow review my MR
+@otomate review my MR
 ```
 
 Or with a specific MR ID:
 
 ```
-@forgeflow auto-review MR !142
+@otomate auto-review MR !142
 ```
 
 Or to check readiness:
 
 ```
-@forgeflow is my MR ready for review?
+@otomate is my MR ready for review?
 ```
 
 ## What Happens
@@ -95,7 +95,7 @@ Based on findings, the workflow offers:
 ## Example Review Output
 
 ```
-🔍 ForgeFlow Auto-Review: MR !142
+🔍 Otomate Auto-Review: MR !142
 
 Add user avatar upload endpoint
 Branch: feature/PROJ-123-avatar → develop | Files: 5 | Lines: +245 -12

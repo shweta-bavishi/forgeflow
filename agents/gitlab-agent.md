@@ -299,7 +299,7 @@ Link: https://jira/browse/PROJ-123
 {If UI changes}
 
 ---
-Created via ForgeFlow
+Created via Otomate
 ```
 
 ## Branch Naming

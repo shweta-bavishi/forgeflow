@@ -1,8 +1,8 @@
 # Workflow 01: Initialize Project
 
-**Goal**: Scan a repository structure, auto-detect project details, and generate a complete `forgeflow.config.yml` file tailored to the project.
+**Goal**: Scan a repository structure, auto-detect project details, and generate a complete `otomate.config.yml` file tailored to the project.
 
-**Trigger**: "Initialize ForgeFlow", "Set up ForgeFlow", "Init project"
+**Trigger**: "Initialize Otomate", "Set up Otomate", "Init project"
 
 **Agents**: Orchestrator → Code Agent, Project Context Agent
 
@@ -265,7 +265,7 @@ Note: Page IDs must be provided manually
 
 ## Phase 4: PRESENT DRAFT CONFIG
 
-Generate complete `forgeflow.config.yml` and show to developer:
+Generate complete `otomate.config.yml` and show to developer:
 
 ```yaml
 project:
@@ -320,7 +320,7 @@ This is NORMAL. Some values can only come from knowing your tools.
 
 ```
 Show developer:
-  ← Draft forgeflow.config.yml
+  ← Draft otomate.config.yml
   ← Highlighted sections needing input
 
 Ask: "Does this look right?"
@@ -346,28 +346,28 @@ STEP 1 — Finalize config:
   Ask developer for remaining missing values
   Fill in all required fields
 
-STEP 2 — Write forgeflow.config.yml:
-  Save to project root: forgeflow.config.yml
+STEP 2 — Write otomate.config.yml:
+  Save to project root: otomate.config.yml
 
-STEP 3 — Create .forgeflow/ folder structure:
-  mkdir .forgeflow/
+STEP 3 — Create .otomate/ folder structure:
+  mkdir .otomate/
   Copy agents/ folder from template
   Copy workflows/ folder from template
   Copy templates/ folder from template
   Copy config/ folder from template (config ref, tools reference)
 
 STEP 4 — Add to .gitignore:
-  Check if forgeflow.config.yml should be in .gitignore
+  Check if otomate.config.yml should be in .gitignore
   (Yes if it contains secrets or is project-specific)
 
 STEP 5 — Verify setup:
-  Confirm: forgeflow.config.yml exists in root
-  Confirm: .forgeflow/ folder structure is complete
+  Confirm: otomate.config.yml exists in root
+  Confirm: .otomate/ folder structure is complete
   Confirm: All required fields are populated
 
 Show developer:
-  ✓ ForgeFlow is initialized!
-  ✓ Config saved to: forgeflow.config.yml
+  ✓ Otomate is initialized!
+  ✓ Config saved to: otomate.config.yml
   ✓ Agents loaded: {list}
   ✓ Next: Try a workflow!
 
@@ -429,8 +429,8 @@ Action:
 
 **Duration**: 5-10 minutes (mostly auto-detection + 2-3 minutes Q&A)
 
-**What It Creates**: `forgeflow.config.yml` + `.forgeflow/` directory structure
+**What It Creates**: `otomate.config.yml` + `.otomate/` directory structure
 
 **Next Workflow**: Any of the 7 remaining workflows (02-08)
 
-**Related**: docs/onboarding.md (user guide), config/forgeflow.config.example.yml (template)
+**Related**: docs/onboarding.md (user guide), config/otomate.config.example.yml (template)

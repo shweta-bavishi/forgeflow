@@ -1,0 +1,266 @@
+# Otomate Configuration
+# Copy this file to your project root and fill in your project details.
+# Every field is documented with description, type, and example value.
+# Fields marked REQUIRED must be set; others have sensible defaults.
+
+# ============================================================================
+# PROJECT IDENTITY (REQUIRED)
+# ============================================================================
+project:
+  name: "my-awesome-api"                    # Short identifier
+  description: "REST API for user profiles" # Human-readable description
+  team: "backend-squad"                     # Team name
+  language: "typescript"                    # typescript | java | python | go | rust | csharp
+  framework: "nestjs"                       # nestjs | spring-boot | django | fastapi | express | etc.
+  runtime: "node.js 20"                     # Runtime + version
+  package_manager: "npm"                    # npm | yarn | pnpm | maven | gradle | pip | poetry | cargo
+  repository_url: "https://gitlab.com/yourorg/my-awesome-api.git"
+
+# ============================================================================
+# ARCHITECTURE DETAILS
+# ============================================================================
+architecture:
+  pattern: "clean architecture"             # clean architecture | MVC | hexagonal | event-driven
+  layers:
+    - name: "controllers"
+      path: "src/controllers"
+      description: "HTTP request handlers and route definitions"
+    - name: "services"
+      path: "src/services"
+      description: "Business logic and domain logic"
+    - name: "repositories"
+      path: "src/repositories"
+      description: "Data access layer and database interactions"
+    - name: "entities"
+      path: "src/entities"
+      description: "Domain entities and data models"
+    - name: "middleware"
+      path: "src/middleware"
+      description: "HTTP middleware and cross-cutting concerns"
+    - name: "guards"
+      path: "src/guards"
+      description: "Authentication and authorization guards"
+    - name: "filters"
+      path: "src/filters"
+      description: "Exception filters and error handling"
+  key_files:
+    - "src/app.module.ts"
+    - "src/main.ts"
+    - "package.json"
+    - "README.md"
+    - ".eslintrc.js"
+    - "jest.config.js"
+    - "Dockerfile"
+
+# ============================================================================
+# CODING STANDARDS
+# ============================================================================
+coding_standards:
+  style_guide: "Airbnb TypeScript"
+  linter: "eslint"
+  linter_config: ".eslintrc.js"
+  formatter: "prettier"
+  formatter_config: ".prettierrc"
+  test_framework: "jest"
+  test_config: "jest.config.js"
+  test_pattern: "src/**/*.spec.ts"
+  coverage_threshold: 80
+  naming:
+    files: "kebab-case"
+    directories: "kebab-case"
+    classes: "PascalCase"
+    functions: "camelCase"
+    constants: "UPPER_SNAKE_CASE"
+    interfaces: "PascalCase"
+    variables: "camelCase"
+  rules:
+    - "Use dependency injection via constructor parameters (NestJS pattern)"
+    - "Always add JSDoc comments to public methods"
+    - "Use custom exceptions for business logic errors (extend HttpException)"
+    - "Validate input using class-validator decorators"
+    - "Use async/await, never raw Promises in services"
+    - "Keep methods to single responsibility (max 30 lines)"
+    - "Use enum for status fields instead of string literals"
+    - "Write unit tests for services, integration tests for controllers"
+
+# ============================================================================
+# JIRA CONFIGURATION (REQUIRED)
+# ============================================================================
+jira:
+  project_key: "PROJ"                       # Jira project key
+  board_id: 123                             # Board ID for sprint operations
+  epic_issue_type: "Epic"
+  story_issue_type: "Story"
+  task_issue_type: "Task"
+  bug_issue_type: "Bug"
+  story_point_field: "customfield_10021"     # Story Points field ID
+  sprint_field: "customfield_10020"          # Sprint field ID
+  statuses:
+    todo: "To Do"
+    in_progress: "In Progress"
+    in_review: "In Review"
+    qa: "QA"
+    done: "Done"
+  labels:
+    - "otomate-auto"
+    - "backend"
+
+# ============================================================================
+# GITLAB CONFIGURATION (REQUIRED)
+# ============================================================================
+gitlab:
+  project_id: 12345                         # Numeric project ID from GitLab settings
+  default_branch: "develop"
+  release_branch_pattern: "release/v*"
+  branching:
+    feature_prefix: "feature/"
+    bugfix_prefix: "fix/"
+    hotfix_prefix: "hotfix/"
+    release_prefix: "release/v"
+    chore_prefix: "chore/"
+  merge_request:
+    target_branch: "develop"
+    squash_commits: true
+    delete_source_branch: true
+  commit_message:
+    pattern: "{{key}}: {{title}}\n\n{{description}}\n\nJira: https://jira.your-org.com/browse/{{key}}"
+
+# ============================================================================
+# CONFLUENCE CONFIGURATION
+# ============================================================================
+confluence:
+  space_key: "ENG"
+  release_notes_parent_page_id: 12345678
+  requirements_page_id: null
+  template_page_id: null
+
+# ============================================================================
+# JENKINS CONFIGURATION
+# ============================================================================
+jenkins:
+  job_name: "my-awesome-api-build"
+  deploy_job_name: "my-awesome-api-deploy"
+  base_url: "https://jenkins.your-org.com"
+
+# ============================================================================
+# SONARQUBE CONFIGURATION
+# ============================================================================
+sonarqube:
+  project_key: "com.yourorg:my-awesome-api"
+  quality_gate: "Sonar way"
+  base_url: "https://sonarqube.your-org.com"
+
+# ============================================================================
+# NEXUS IQ CONFIGURATION (Security Audit)
+# ============================================================================
+nexusiq:
+  application_name: ""                       # Must match Nexus IQ application name
+  organization: ""                           # Optional: narrows discovery
+
+# ============================================================================
+# ZEPHYR CONFIGURATION (Test Management)
+# ============================================================================
+zephyr:
+  test_issue_type: "Test"                    # Issue type name for Zephyr tests
+  test_link_type: "Tests"                    # Link type connecting tests to stories
+  labels:
+    - "zephyr"
+    - "otomate-generated"
+
+# ============================================================================
+# AUTO-REVIEW CONFIGURATION (MR Review)
+# ============================================================================
+auto_review:
+  dimensions:
+    standards_compliance: true
+    architecture_compliance: true
+    test_coverage: true
+    quality_gate: true
+    jira_alignment: true
+    code_quality: true
+  coverage_threshold: 80
+  auto_post: false                           # Always ask before posting review
+  forbidden_patterns:
+    - "console.log"
+    - "debugger"
+    - "TODO"
+    - "FIXME"
+    - "HACK"
+
+# ============================================================================
+# SCAFFOLD TEMPLATES
+# ============================================================================
+scaffolds:
+  typescript:
+    - name: "controller"
+      template: ".github/skills/implement-dev-task/scaffolds/controller.hbs"
+      output_pattern: "src/controllers/{{kebab name}}.controller.ts"
+    - name: "service"
+      template: ".github/skills/implement-dev-task/scaffolds/service.hbs"
+      output_pattern: "src/services/{{kebab name}}.service.ts"
+    - name: "repository"
+      template: ".github/skills/implement-dev-task/scaffolds/repository.hbs"
+      output_pattern: "src/repositories/{{kebab name}}.repository.ts"
+    - name: "entity"
+      template: ".github/skills/implement-dev-task/scaffolds/entity.hbs"
+      output_pattern: "src/entities/{{kebab name}}.entity.ts"
+    - name: "test"
+      template: ".github/skills/implement-dev-task/scaffolds/test.hbs"
+      output_pattern: "src/{{path}}/{{kebab name}}.spec.ts"
+
+# ============================================================================
+# APPROVAL GATES (HITL Configuration)
+# ============================================================================
+approval_gates:
+  always_require_approval:
+    - "create_release_build"
+    - "create_release_note"
+    - "push_code_to_remote"
+    - "update_jira_status_to_done"
+    - "post_mr_review_comment"
+    - "create_security_fix_mr"
+    - "create_zephyr_tests"
+  can_auto_approve_if:
+    - "sonar_fix_auto_fixable_issues"
+    - "fix_pipeline_low_risk"
+
+# ============================================================================
+# DEPENDENCY MANAGEMENT
+# ============================================================================
+dependencies:
+  blacklist:
+    - "eval"
+    - "child_process"
+  required:
+    - "helmet"
+    - "class-validator"
+    - "class-transformer"
+
+codeowners_path: ".gitlab/CODEOWNERS"
+
+# ============================================================================
+# TOKEN OPTIMIZATION
+# ============================================================================
+token_optimization:
+  max_file_lines_in_context: 300
+  auto_summarize_above_lines: 500
+
+# ============================================================================
+# INTEGRATION CREDENTIALS
+# ============================================================================
+# NOTE: Do NOT commit actual credentials. Set via environment variables:
+#   JIRA_TOKEN, GITLAB_TOKEN, CONFLUENCE_TOKEN, JENKINS_USER,
+#   JENKINS_TOKEN, SONARQUBE_TOKEN, NEXUSIQ_TOKEN
+integrations:
+  jira:
+    url: "https://jira.your-org.com"
+  gitlab:
+    url: "https://gitlab.com"
+  confluence:
+    url: "https://confluence.your-org.com"
+  jenkins:
+    url: "https://jenkins.your-org.com"
+  sonarqube:
+    url: "https://sonarqube.your-org.com"
+  nexusiq:
+    url: "https://nexusiq.your-org.com"

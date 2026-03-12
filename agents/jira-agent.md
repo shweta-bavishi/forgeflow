@@ -238,7 +238,7 @@ jira:
     in_progress: "In Progress"
     in_review: "In Review"
     done: "Done"
-  labels: ["forgeflow-auto", "backend"]
+  labels: ["otomate-auto", "backend"]
 ```
 
 ## Error Handling
@@ -409,7 +409,7 @@ NEVER:
 update_jira_issue(key, {
   status: "In Progress",
   customfield_10021: 8,  # Story points
-  labels: ["forgeflow", "bug-fix"]
+  labels: ["otomate", "bug-fix"]
 })
 ```
 

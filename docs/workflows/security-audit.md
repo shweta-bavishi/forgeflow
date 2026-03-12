@@ -23,15 +23,15 @@
 ## How to Trigger
 
 ```
-@forgeflow run security audit
+@otomate run security audit
 ```
 
 Or more specific:
 
 ```
-@forgeflow check vulnerabilities
-@forgeflow audit dependencies
-@forgeflow are we safe to release?
+@otomate check vulnerabilities
+@otomate audit dependencies
+@otomate are we safe to release?
 ```
 
 ## What Happens

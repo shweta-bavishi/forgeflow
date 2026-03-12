@@ -21,13 +21,13 @@
 ## How to Trigger
 
 ```
-@forgeflow create release build
+@otomate create release build
 ```
 
 Or for a specific version:
 
 ```
-@forgeflow prepare release v2.4.0
+@otomate prepare release v2.4.0
 ```
 
 ## What Happens

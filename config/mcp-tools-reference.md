@@ -1,6 +1,6 @@
-# MCP Tools Reference — ForgeFlow Complete Tool Inventory
+# MCP Tools Reference — Otomate Complete Tool Inventory
 
-This document catalogs all 113 MCP tools available from the ce-mcp server that ForgeFlow can use. Tools are organized by domain and include usage notes.
+This document catalogs all 113 MCP tools available from the ce-mcp server that Otomate can use. Tools are organized by domain and include usage notes.
 
 ## GitLab Tools (19 tools)
 
@@ -146,7 +146,7 @@ All Confluence operations for documentation and requirements management.
    → Title: "Release Note — v{version} — {date}"
 ```
 
-**Critical Note**: Confluence page content is HTML. When updating pages, ForgeFlow must:
+**Critical Note**: Confluence page content is HTML. When updating pages, Otomate must:
 - Fetch current version to avoid conflicts
 - Increment version number on update
 - Render structured data back to Confluence HTML format
@@ -365,7 +365,7 @@ To verify that all required MCP tools are available:
    - Verify credentials are configured (tokens, API keys)
 
 2. **Test Tool Availability**
-   - Start a conversation with ForgeFlow Orchestrator
+   - Start a conversation with Otomate Orchestrator
    - Agent will verify required tools are present
    - Missing tools will be reported clearly
 
@@ -394,7 +394,7 @@ To verify that all required MCP tools are available:
 
 ---
 
-## Adding New Tools to ForgeFlow
+## Adding New Tools to Otomate
 
 To integrate a new MCP tool:
 

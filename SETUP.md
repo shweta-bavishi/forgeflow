@@ -1,6 +1,6 @@
-# ForgeFlow Setup Guide
+# Otomate Setup Guide
 
-Complete installation and configuration guide for ForgeFlow in your project.
+Complete installation and configuration guide for Otomate in your project.
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ Before starting, ensure you have:
 
 ## Step 1: Add MCP Server Configuration
 
-ForgeFlow requires MCP tools. Configure your IDE to use the ce-mcp server:
+Otomate requires MCP tools. Configure your IDE to use the ce-mcp server:
 
 ### VS Code
 
@@ -78,30 +78,30 @@ GITLAB_TOKEN=xxx
 ...
 ```
 
-## Step 3: Copy ForgeFlow to Project
+## Step 3: Copy Otomate to Project
 
 ### Option A: Manual Copy
 
 ```bash
-mkdir -p your-project/.forgeflow
-cp -r forgeflow/{agents,workflows,templates,config} your-project/.forgeflow/
+mkdir -p your-project/.otomate
+cp -r otomate/{agents,workflows,templates,config} your-project/.otomate/
 ```
 
 ### Option B: Use Init Workflow (Recommended)
 
 1. Open your project in IDE
 2. Open Copilot Chat
-3. Say: **"Initialize ForgeFlow"**
+3. Say: **"Initialize Otomate"**
 4. Follow prompts
 
-ForgeFlow will scan your project and create config.
+Otomate will scan your project and create config.
 
-## Step 4: Create forgeflow.config.yml
+## Step 4: Create otomate.config.yml
 
-In your project root, create `forgeflow.config.yml`:
+In your project root, create `otomate.config.yml`:
 
 ```yaml
-# Copy from config/forgeflow.config.example.yml and customize:
+# Copy from config/otomate.config.example.yml and customize:
 
 project:
   name: "my-awesome-api"
@@ -159,7 +159,7 @@ Test that all tools are accessible:
 ### In Copilot Chat:
 
 ```
-Verify ForgeFlow setup
+Verify Otomate setup
 ```
 
 Or manually:
@@ -198,7 +198,7 @@ This will:
 3. Ask for approval
 4. Generate code and open MR
 
-**If this works**: ✓ ForgeFlow is ready!
+**If this works**: ✓ Otomate is ready!
 
 ## Troubleshooting
 
@@ -227,11 +227,11 @@ This will:
 
 ### Config File Not Found
 
-**Error**: "forgeflow.config.yml not found"
+**Error**: "otomate.config.yml not found"
 
 **Solution**:
 1. Create config in project root (see Step 4)
-2. Or run: "Initialize ForgeFlow" to auto-generate
+2. Or run: "Initialize Otomate" to auto-generate
 
 ### Workflow Fails
 
@@ -257,16 +257,16 @@ This will:
 
 To roll out to your team:
 
-1. **Distribute**: Share forgeflow/ directory
+1. **Distribute**: Share otomate/ directory
 2. **Document**: Link to README.md and SETUP.md
 3. **Train**: Walk through first workflow together
 4. **Customize**: Update config for your org
 5. **Iterate**: Collect feedback, improve agents
 
-See [docs/contributing.md](docs/contributing.md) for extending ForgeFlow.
+See [docs/contributing.md](docs/contributing.md) for extending Otomate.
 
 ---
 
 **Issues?** Check [docs/troubleshooting.md](docs/troubleshooting.md)
 
-**Next:** [ReadME.md](README.md) for overview or start using ForgeFlow now!
+**Next:** [ReadME.md](README.md) for overview or start using Otomate now!

@@ -373,7 +373,7 @@ Duplicate test exists:
 link_issues fails:
   → Warn: "Link type '{type}' may not exist in Jira."
   → Continue with remaining tests
-  → Suggest: "Configure zephyr.test_link_type in forgeflow.config.yml"
+  → Suggest: "Configure zephyr.test_link_type in otomate.config.yml"
 
 Too many test cases generated (> 50):
   → Warn: "Generated {N} test cases — consider reviewing for duplicates"

@@ -1,0 +1,142 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { {{pascalCase name}}Service } from '../services/{{kebabCase name}}.service';
+import { {{pascalCase name}}Repository } from '../repositories/{{kebabCase name}}.repository';
+import { {{pascalCase name}} } from '../entities/{{kebabCase name}}.entity';
+
+describe('{{pascalCase name}}Service', () => {
+  let service: {{pascalCase name}}Service;
+  let repository: jest.Mocked<{{pascalCase name}}Repository>;
+
+  const mock{{pascalCase name}}: {{pascalCase name}} = {
+    id: 1,
+    name: 'Test {{pascalCase name}}',
+    description: 'A test {{camelCase name}} entity',
+    isActive: true,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  };
+
+  beforeEach(async () => {
+    const mockRepository = {
+      create: jest.fn(),
+      save: jest.fn(),
+      findOne: jest.fn(),
+      findAndCount: jest.fn(),
+      remove: jest.fn(),
+      count: jest.fn(),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        {{pascalCase name}}Service,
+        {
+          provide: {{pascalCase name}}Repository,
+          useValue: mockRepository,
+        },
+      ],
+    }).compile();
+
+    service = module.get<{{pascalCase name}}Service>({{pascalCase name}}Service);
+    repository = module.get({{pascalCase name}}Repository);
+  });
+
+  describe('create', () => {
+    it('should create a new {{camelCase name}} successfully', async () => {
+      // Arrange
+      const createDto = { name: 'New {{pascalCase name}}', description: 'Description' };
+      repository.create.mockReturnValue(mock{{pascalCase name}});
+      repository.save.mockResolvedValue(mock{{pascalCase name}});
+
+      // Act
+      const result = await service.create(createDto);
+
+      // Assert
+      expect(repository.create).toHaveBeenCalledWith(expect.objectContaining(createDto));
+      expect(repository.save).toHaveBeenCalled();
+      expect(result).toEqual(mock{{pascalCase name}});
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return a {{camelCase name}} when found', async () => {
+      // Arrange
+      repository.findOne.mockResolvedValue(mock{{pascalCase name}});
+
+      // Act
+      const result = await service.findOne(1);
+
+      // Assert
+      expect(repository.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
+      expect(result).toEqual(mock{{pascalCase name}});
+    });
+
+    it('should throw NotFoundException when {{camelCase name}} not found', async () => {
+      // Arrange
+      repository.findOne.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return paginated results', async () => {
+      // Arrange
+      repository.findAndCount.mockResolvedValue([[mock{{pascalCase name}}], 1]);
+
+      // Act
+      const result = await service.findAll({ page: 1, limit: 20 });
+
+      // Assert
+      expect(result.items).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
+      expect(result.meta.page).toBe(1);
+    });
+  });
+
+  describe('update', () => {
+    it('should update an existing {{camelCase name}}', async () => {
+      // Arrange
+      const updateDto = { name: 'Updated Name' };
+      repository.findOne.mockResolvedValue(mock{{pascalCase name}});
+      repository.save.mockResolvedValue({ ...mock{{pascalCase name}}, ...updateDto });
+
+      // Act
+      const result = await service.update(1, updateDto);
+
+      // Assert
+      expect(result.name).toBe('Updated Name');
+    });
+
+    it('should throw NotFoundException for non-existent {{camelCase name}}', async () => {
+      // Arrange
+      repository.findOne.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.update(999, { name: 'Nope' })).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('remove', () => {
+    it('should remove an existing {{camelCase name}}', async () => {
+      // Arrange
+      repository.findOne.mockResolvedValue(mock{{pascalCase name}});
+      repository.remove.mockResolvedValue(mock{{pascalCase name}});
+
+      // Act
+      await service.remove(1);
+
+      // Assert
+      expect(repository.remove).toHaveBeenCalledWith(mock{{pascalCase name}});
+    });
+
+    it('should throw NotFoundException for non-existent {{camelCase name}}', async () => {
+      // Arrange
+      repository.findOne.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.remove(999)).rejects.toThrow(NotFoundException);
+    });
+  });
+});

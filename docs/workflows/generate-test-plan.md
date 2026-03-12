@@ -25,19 +25,19 @@
 For a single story:
 
 ```
-@forgeflow generate test plan for PROJ-123
+@otomate generate test plan for PROJ-123
 ```
 
 For an entire epic:
 
 ```
-@forgeflow create test cases for epic PROJ-100
+@otomate create test cases for epic PROJ-100
 ```
 
 For the current sprint:
 
 ```
-@forgeflow generate test plan for this sprint
+@otomate generate test plan for this sprint
 ```
 
 ## What Happens

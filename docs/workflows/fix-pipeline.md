@@ -21,13 +21,13 @@
 ## How to Trigger
 
 ```
-@forgeflow fix pipeline
+@otomate fix pipeline
 ```
 
 Or with a specific build number:
 
 ```
-@forgeflow diagnose jenkins build #142
+@otomate diagnose jenkins build #142
 ```
 
 ## What Happens

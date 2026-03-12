@@ -1,10 +1,10 @@
 # Configuration Reference
 
-Complete reference for `forgeflow.config.yml`. Every field explained with type, default, and example.
+Complete reference for `otomate.config.yml`. Every field explained with type, default, and example.
 
 ## File Location
 
-`forgeflow.config.yml` must be in the **project root directory** (same level as `package.json`, `pom.xml`, etc.).
+`otomate.config.yml` must be in the **project root directory** (same level as `package.json`, `pom.xml`, etc.).
 
 ## Section: project
 
@@ -223,7 +223,7 @@ integrations:
 
 ## Tips
 
-**Multi-project setups**: Each project has its own `forgeflow.config.yml`. Share common settings via template.
+**Multi-project setups**: Each project has its own `otomate.config.yml`. Share common settings via template.
 
 **Minimal config**: Only `project.name`, `project.language`, `jira.project_key`, and `gitlab.project_id` are truly required. Everything else has defaults or is optional.
 
@@ -231,4 +231,4 @@ integrations:
 
 ---
 
-**Related**: config/forgeflow.config.example.yml (template), SETUP.md (installation guide)
+**Related**: config/otomate.config.example.yml (template), SETUP.md (installation guide)

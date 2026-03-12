@@ -250,7 +250,7 @@ OPTION B — "Create Jira issues for remediation"
       - Summary: "Security: {CVE/issue} in {component}"
       - Description: Full vulnerability details, impact, fix steps
       - Priority: Mapped from severity (Critical → Highest, High → High, etc.)
-      - Labels: ["security", "forgeflow-generated"]
+      - Labels: ["security", "otomate-generated"]
   → Link related issues via link_issues
 
 OPTION C — "Both — fix MR for easy upgrades + Jira for complex ones"
@@ -319,7 +319,7 @@ FOR EACH approved finding needing Jira:
       summary: "Security: {brief description}",
       description: "{full CVE details, impact, fix steps}",
       priority: {mapped from severity},
-      labels: ["security", "forgeflow-generated"]
+      labels: ["security", "otomate-generated"]
     )
 
   STEP 3 — Link related:

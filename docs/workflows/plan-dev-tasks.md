@@ -15,19 +15,19 @@
 | Requirement | Details |
 |---|---|
 | Jira Story | Must exist and be accessible via `get_jira_issue` |
-| Config loaded | `forgeflow.config.yml` with `architecture.layers` and `jira.project_key` |
+| Config loaded | `otomate.config.yml` with `architecture.layers` and `jira.project_key` |
 | Architecture defined | Config must specify the project's layer structure |
 
 ## How to Trigger
 
 ```
-@forgeflow plan tasks for PROJ-101
+@otomate plan tasks for PROJ-101
 ```
 
 Or for multiple stories:
 
 ```
-@forgeflow plan dev tasks for PROJ-101, PROJ-102, PROJ-103
+@otomate plan dev tasks for PROJ-101, PROJ-102, PROJ-103
 ```
 
 ## What Happens
@@ -46,7 +46,7 @@ The Jira Agent fetches the story details (`get_jira_issue`), extracting:
 The Code Agent maps the story's requirements to architecture layers defined in the config:
 
 ```yaml
-# From forgeflow.config.yml
+# From otomate.config.yml
 architecture:
   layers:
     - controller    # REST / GraphQL endpoints

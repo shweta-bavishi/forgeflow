@@ -1,5 +1,5 @@
-# ForgeFlow Configuration Template
-# Copy this file to your project root as forgeflow.config.yml and fill in your project details.
+# Otomate Configuration Template
+# Copy this file to your project root as otomate.config.yml and fill in your project details.
 # Every field is documented below with description, type, and example value.
 
 # ============================================================================
@@ -148,9 +148,9 @@ jira:
     qa: "QA"
     done: "Done"
 
-  # Default labels to apply to new issues created by ForgeFlow
+  # Default labels to apply to new issues created by Otomate
   labels:
-    - "forgeflow-auto"
+    - "otomate-auto"
     - "backend"
 
 # ============================================================================
@@ -201,7 +201,7 @@ confluence:
   space_key: "ENG"
 
   # Page ID of the parent page for release notes
-  # (ForgeFlow will create new release note pages as children of this page)
+  # (Otomate will create new release note pages as children of this page)
   release_notes_parent_page_id: 12345678
 
   # Page ID where requirements/epics are stored (for plan-epics workflow)
@@ -293,7 +293,7 @@ nexusiq:
   # Nexus IQ organization (optional — helps narrow discovery)
   organization: ""
 
-  # If not configured, ForgeFlow will auto-discover via
+  # If not configured, Otomate will auto-discover via
   # get_sonar_project_and_nexus_iq_application_by_gitlab
 
 # ============================================================================
@@ -309,7 +309,7 @@ zephyr:
   # Labels automatically applied to generated test cases
   labels:
     - "zephyr"
-    - "forgeflow-generated"
+    - "otomate-generated"
 
 # ============================================================================
 # AUTO-REVIEW CONFIGURATION (MR Review Workflow)

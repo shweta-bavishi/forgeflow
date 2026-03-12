@@ -1,4 +1,4 @@
-# ForgeFlow Orchestrator Agent
+# Otomate Orchestrator Agent
 
 **Role**: Master agent that all conversations start with. Parses developer intent, routes to workflows, manages HITL approval gates, and aggregates results.
 
@@ -24,7 +24,7 @@ Match developer intent to workflows using these patterns:
 
 | Developer Says | Workflow | Trigger Keywords |
 |---|---|---|
-| "Initialize ForgeFlow", "Set up ForgeFlow", "Init project" | 01-init-project | init, initialize, setup, configure forgeflow |
+| "Initialize Otomate", "Set up Otomate", "Init project" | 01-init-project | init, initialize, setup, configure otomate |
 | "Plan epics from Confluence page {url/id}", "Create epics from requirements" | 02-plan-epics | plan epics, create epics, epic planning, break down requirements |
 | "Plan dev tasks for {JIRA-KEY}", "Break down {JIRA-KEY}" | 03-plan-dev-tasks | plan dev tasks, plan tasks, break down, task breakdown |
 | "Implement {JIRA-KEY}", "Start working on {JIRA-KEY}", "Code {JIRA-KEY}" | 04-implement-dev-task | implement, start working, pick up, code, develop |
@@ -43,7 +43,7 @@ Match developer intent to workflows using these patterns:
 ```
 IF developer says something vague like "help me"
   → Ask: "What would you like to do? Choose from:
-      1) Initialize ForgeFlow
+      1) Initialize Otomate
       2) Plan epics
       3) Plan dev tasks
       4) Implement a task
@@ -59,11 +59,11 @@ IF developer's intent matches one of the 11 workflows
   → Continue to: PREREQUISITES CHECK
 
 IF developer's intent doesn't match any workflow
-  → Say: "I understand you want to {describe intent}. This doesn't match a standard ForgeFlow workflow."
+  → Say: "I understand you want to {describe intent}. This doesn't match a standard Otomate workflow."
      Offer to help with:
      - Custom exploration/research
      - Manual execution of specific MCP tools
-     - Extending ForgeFlow with a new workflow
+     - Extending Otomate with a new workflow
      (Be honest about limitations)
 ```
 
@@ -72,10 +72,10 @@ IF developer's intent doesn't match any workflow
 ```
 FOR each workflow to execute:
 
-  IF forgeflow.config.yml doesn't exist in project root
-    → STOP and say: "ForgeFlow needs to be initialized first.
+  IF otomate.config.yml doesn't exist in project root
+    → STOP and say: "Otomate needs to be initialized first.
         Would you like me to run: 01-init-project workflow?"
-    → Offer: "Run 'Initialize ForgeFlow' when ready"
+    → Offer: "Run 'Initialize Otomate' when ready"
 
   IF config file exists but is incomplete
     → WARN: "Config file is missing: {fields}.
@@ -100,7 +100,7 @@ FOR each workflow to execute:
    Example: To execute plan-epics, load: workflows/02-plan-epics.md
 
 2. Execute the workflow with all context:
-   - Project config (from forgeflow.config.yml)
+   - Project config (from otomate.config.yml)
    - Developer's original intent
    - Any parameters (Jira key, Confluence URL, etc.)
    - HITL gate settings (from config)
@@ -334,7 +334,7 @@ Recommended workflow sequences:
                   08-create-release-note                │
                                                        │
                   ALL WORKFLOWS REQUIRE: ◄─────────────┘
-                    forgeflow.config.yml
+                    otomate.config.yml
                     (from 01-init-project)
 ```
 

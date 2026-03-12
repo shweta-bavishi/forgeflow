@@ -1,0 +1,61 @@
+import { Injectable } from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
+import { {{pascalCase name}} } from '../entities/{{kebabCase name}}.entity';
+
+/**
+ * Repository for {{pascalCase name}} data access.
+ * Handles all database operations for the {{pascalCase name}} entity.
+ *
+ * @class {{pascalCase name}}Repository
+ */
+@Injectable()
+export class {{pascalCase name}}Repository extends Repository<{{pascalCase name}}> {
+  constructor(private readonly dataSource: DataSource) {
+    super({{pascalCase name}}, dataSource.createEntityManager());
+  }
+
+  /**
+   * Find {{camelCase name}} by a unique field.
+   *
+   * @param field - The field name to search by
+   * @param value - The value to match
+   * @returns The matching entity or null
+   */
+  async findByField(field: string, value: string): Promise<{{pascalCase name}} | null> {
+    return await this.createQueryBuilder('{{camelCase name}}')
+      .where(`{{camelCase name}}.${field} = :value`, { value })
+      .getOne();
+  }
+
+  /**
+   * Find all active {{camelCase name}}s with optional filters.
+   *
+   * @param filters - Optional filter criteria
+   * @returns Array of matching entities
+   */
+  async findActive(filters?: Partial<{{pascalCase name}}>): Promise<{{pascalCase name}}[]> {
+    const qb = this.createQueryBuilder('{{camelCase name}}')
+      .where('{{camelCase name}}.isActive = :isActive', { isActive: true });
+
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined) {
+          qb.andWhere(`{{camelCase name}}.${key} = :${key}`, { [key]: value });
+        }
+      });
+    }
+
+    return await qb.orderBy('{{camelCase name}}.createdAt', 'DESC').getMany();
+  }
+
+  /**
+   * Check if a {{camelCase name}} exists by ID.
+   *
+   * @param id - The entity ID
+   * @returns True if entity exists
+   */
+  async existsById(id: number): Promise<boolean> {
+    const count = await this.count({ where: { id } });
+    return count > 0;
+  }
+}

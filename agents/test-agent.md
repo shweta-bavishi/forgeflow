@@ -27,7 +27,7 @@ zephyr:
   test_link_type: "Tests"
   labels:
     - "zephyr"
-    - "forgeflow-generated"
+    - "otomate-generated"
 
 jira:
   project_key: "PROJ"
@@ -305,7 +305,7 @@ FOR EACH approved test case:
     Summary: Test name (max 255 chars)
     Description: Full test case (objective, preconditions, steps, expected results, test data)
     Priority: From test case priority
-    Labels: config.zephyr.labels + ["forgeflow-generated"]
+    Labels: config.zephyr.labels + ["otomate-generated"]
     Component: From source Jira issue
 
   STEP 2 — Create in Zephyr:

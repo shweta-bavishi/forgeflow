@@ -193,7 +193,7 @@ If creation fails:
 Append section to original requirements page:
 
 ```
-## Created Epics (via ForgeFlow)
+## Created Epics (via Otomate)
 
 | Jira Key | Epic Name | Priority | Status |
 |----------|-----------|----------|--------|
@@ -201,7 +201,7 @@ Append section to original requirements page:
 | PROJ-200 | Avatar Support | MEDIUM | To Do |
 | PROJ-300 | Payment Processing | HIGH | To Do |
 
-Created on {date} via ForgeFlow
+Created on {date} via Otomate
 ```
 
 Call: `update_confluence_page` with incremented version

@@ -1,10 +1,10 @@
 # MCP Server Setup Guide
 
-How to configure the MCP (Model Context Protocol) tools that ForgeFlow requires.
+How to configure the MCP (Model Context Protocol) tools that Otomate requires.
 
 ## What is MCP?
 
-MCP provides ForgeFlow's agents with access to external tools (Jira, GitLab, Confluence, Jenkins, SonarQube). The ce-mcp server exposes 113 tools that agents call during workflow execution.
+MCP provides Otomate's agents with access to external tools (Jira, GitLab, Confluence, Jenkins, SonarQube). The ce-mcp server exposes 113 tools that agents call during workflow execution.
 
 ## Prerequisites
 
@@ -101,7 +101,7 @@ In Copilot Chat, test each domain:
 
 ## Tool Inventory
 
-ForgeFlow uses 113 tools across 10 domains:
+Otomate uses 113 tools across 10 domains:
 
 | Domain | Tools | Key Tools |
 |--------|-------|-----------|
@@ -140,7 +140,7 @@ See `config/mcp-tools-reference.md` for complete inventory.
 
 ### "Rate limited"
 
-1. ForgeFlow agents retry automatically
+1. Otomate agents retry automatically
 2. If persistent: wait 1-2 minutes
 3. Check if other automation is using same token
 

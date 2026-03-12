@@ -1,14 +1,14 @@
 # Workflow 01 — Init Project
 
-> Scans an existing repository, detects its technology stack, and generates a `forgeflow.config.yml` tailored to the project.
+> Scans an existing repository, detects its technology stack, and generates a `otomate.config.yml` tailored to the project.
 
 ---
 
 ## When to Use
 
-- You are onboarding a **new** project into ForgeFlow for the first time.
+- You are onboarding a **new** project into Otomate for the first time.
 - The repository already exists (at least a skeleton) in GitLab.
-- You want ForgeFlow to auto-detect the tech stack instead of writing the config from scratch.
+- You want Otomate to auto-detect the tech stack instead of writing the config from scratch.
 
 ## Prerequisites
 
@@ -23,13 +23,13 @@
 In Copilot Chat, say:
 
 ```
-@forgeflow initialise project my-group/my-service
+@otomate initialise project my-group/my-service
 ```
 
 Or simply:
 
 ```
-@forgeflow init
+@otomate init
 ```
 
 The Orchestrator will route to **Workflow 01** automatically.
@@ -51,7 +51,7 @@ The Code Agent reads key files from the repo to detect:
 
 ### Phase 2 — Config Generation
 
-A draft `forgeflow.config.yml` is assembled using the detected values.  Fields that cannot be inferred (Jira project key, Confluence space, Jenkins job URL) are left with placeholder comments.
+A draft `otomate.config.yml` is assembled using the detected values.  Fields that cannot be inferred (Jira project key, Confluence space, Jenkins job URL) are left with placeholder comments.
 
 ### Phase 3 — HITL Review
 
@@ -63,7 +63,7 @@ The generated config is presented to you **before** it is written to the repo.  
 
 ### Phase 4 — Commit
 
-Once approved, the config file is committed to the repository via `commit_file_and_create_mr` on a dedicated branch (e.g. `forgeflow/init-config`).
+Once approved, the config file is committed to the repository via `commit_file_and_create_mr` on a dedicated branch (e.g. `otomate/init-config`).
 
 ## MCP Tools Used
 
@@ -76,7 +76,7 @@ Once approved, the config file is committed to the repository via `commit_file_a
 ## Tips
 
 - Run this workflow **once** per project. After the config exists, update it manually or re-run only if the tech stack changes significantly.
-- If detection is inaccurate, correct the config before approving — the rest of ForgeFlow relies on these values.
+- If detection is inaccurate, correct the config before approving — the rest of Otomate relies on these values.
 - You can pre-fill Jira / Confluence / Jenkins values before committing to save a round of manual editing later.
 
 ## Example Output
@@ -90,7 +90,7 @@ Once approved, the config file is committed to the repository via `commit_file_a
    Testing:       Jest
    Linter:        ESLint + Prettier
 
-📄 Draft forgeflow.config.yml generated.
+📄 Draft otomate.config.yml generated.
    ⚠️  Placeholders remaining: jira.project_key, confluence.space_key, jenkins.base_url
 
 🔍 Please review the config below and approve or edit.

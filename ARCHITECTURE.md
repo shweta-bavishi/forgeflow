@@ -1,10 +1,10 @@
-# ForgeFlow Architecture
+# Otomate Architecture
 
 Technical architecture document covering multi-agent design, orchestration, workflow execution, and extensibility.
 
 ## Design Philosophy
 
-ForgeFlow follows three core principles:
+Otomate follows three core principles:
 
 1. **Agentic, not procedural** — Agents make decisions based on context, not fixed scripts
 2. **Config-driven, not hardcoded** — Zero project-specific details in agent code
@@ -129,7 +129,7 @@ Gate provides:
 ### Configuration Loading
 
 ```
-forgeflow.config.yml
+otomate.config.yml
         │
         ▼
   Project Context Agent
@@ -266,7 +266,7 @@ Tool Error → Agent catches → Classifies error type
 
 ```
 Credentials are NEVER stored in:
-  - forgeflow.config.yml
+  - otomate.config.yml
   - Agent .md files
   - Workflow .md files
 
@@ -279,7 +279,7 @@ Credentials are stored in:
 ### Access Control
 
 ```
-ForgeFlow respects existing tool permissions:
+Otomate respects existing tool permissions:
   - If Jira token has read-only access → create_jira_issue fails gracefully
   - If GitLab token lacks MR permissions → commit_file_and_create_mr fails
   - Agents never attempt to escalate privileges

@@ -6,11 +6,11 @@ Common issues and their solutions.
 
 ### "Config file not found"
 
-**Cause**: `forgeflow.config.yml` is missing from project root.
+**Cause**: `otomate.config.yml` is missing from project root.
 
 **Fix**:
-1. Run: "Initialize ForgeFlow" in Copilot Chat
-2. Or copy `config/forgeflow.config.example.yml` to project root as `forgeflow.config.yml`
+1. Run: "Initialize Otomate" in Copilot Chat
+2. Or copy `config/otomate.config.example.yml` to project root as `otomate.config.yml`
 3. Fill in your project details
 
 ### "Config file has YAML syntax errors"
@@ -59,7 +59,7 @@ Common issues and their solutions.
 
 **Cause**: Too many API requests in short time.
 
-**Fix**: ForgeFlow agents auto-retry with backoff. If persistent:
+**Fix**: Otomate agents auto-retry with backoff. If persistent:
 1. Wait 2-3 minutes
 2. Check if other tools are using the same API token
 3. Contact admin to increase rate limits
@@ -81,7 +81,7 @@ Common issues and their solutions.
 **Cause**: Agent/workflow files not loaded or not in expected location.
 
 **Fix**:
-1. Verify `.forgeflow/` directory exists in project root
+1. Verify `.otomate/` directory exists in project root
 2. Check that agent .md files are present in `agents/`
 3. Check that workflow .md files are present in `workflows/`
 4. Restart Copilot Chat session
@@ -151,7 +151,7 @@ Common issues and their solutions.
 
 **Cause**: Branch was created in a previous attempt.
 
-**Fix**: ForgeFlow will ask: "Use existing branch or create new?"
+**Fix**: Otomate will ask: "Use existing branch or create new?"
 - Use existing: code will be committed to existing branch
 - Create new: provide a different branch name
 
@@ -238,8 +238,8 @@ Common issues and their solutions.
 1. **Start fresh**: If a workflow is stuck, start a new Copilot Chat conversation
 2. **Be specific**: More context = better results
 3. **Check config first**: Most issues trace back to config problems
-4. **Read error messages**: ForgeFlow provides specific guidance in errors
-5. **Update regularly**: Keep MCP server and ForgeFlow files up to date
+4. **Read error messages**: Otomate provides specific guidance in errors
+5. **Update regularly**: Keep MCP server and Otomate files up to date
 
 ---
 

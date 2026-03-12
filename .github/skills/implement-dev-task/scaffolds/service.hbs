@@ -1,0 +1,120 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { {{pascalCase name}}Repository } from '../repositories/{{kebabCase name}}.repository';
+import { {{pascalCase name}} } from '../entities/{{kebabCase name}}.entity';
+import { Create{{pascalCase name}}Dto } from '../dto/create-{{kebabCase name}}.dto';
+import { Update{{pascalCase name}}Dto } from '../dto/update-{{kebabCase name}}.dto';
+
+/**
+ * Service for {{pascalCase name}} business logic.
+ * Handles validation, data transformation, and orchestration.
+ *
+ * @class {{pascalCase name}}Service
+ */
+@Injectable()
+export class {{pascalCase name}}Service {
+  constructor(
+    private readonly {{camelCase name}}Repository: {{pascalCase name}}Repository,
+  ) {}
+
+  /**
+   * Create a new {{camelCase name}}.
+   *
+   * @param dto - Creation payload with validated fields
+   * @returns The created {{camelCase name}} entity
+   * @throws BadRequestException if business rules are violated
+   */
+  async create(dto: Create{{pascalCase name}}Dto): Promise<{{pascalCase name}}> {
+    // Validate business rules
+    await this.validateCreate(dto);
+
+    const entity = this.{{camelCase name}}Repository.create({
+      ...dto,
+    });
+
+    return await this.{{camelCase name}}Repository.save(entity);
+  }
+
+  /**
+   * Find all {{camelCase name}}s with pagination.
+   *
+   * @param options - Pagination options (page, limit)
+   * @returns Paginated result with items and metadata
+   */
+  async findAll(options: { page: number; limit: number }) {
+    const { page, limit } = options;
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await this.{{camelCase name}}Repository.findAndCount({
+      skip,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      items,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /**
+   * Find a single {{camelCase name}} by ID.
+   *
+   * @param id - The {{camelCase name}} ID
+   * @returns The found {{camelCase name}} entity
+   * @throws NotFoundException if entity does not exist
+   */
+  async findOne(id: number): Promise<{{pascalCase name}}> {
+    const entity = await this.{{camelCase name}}Repository.findOne({
+      where: { id },
+    });
+
+    if (!entity) {
+      throw new NotFoundException(`{{pascalCase name}} with ID ${id} not found`);
+    }
+
+    return entity;
+  }
+
+  /**
+   * Update an existing {{camelCase name}}.
+   *
+   * @param id - The {{camelCase name}} ID
+   * @param dto - Update payload with fields to change
+   * @returns The updated {{camelCase name}} entity
+   * @throws NotFoundException if entity does not exist
+   */
+  async update(id: number, dto: Update{{pascalCase name}}Dto): Promise<{{pascalCase name}}> {
+    const entity = await this.findOne(id);
+
+    Object.assign(entity, dto);
+
+    return await this.{{camelCase name}}Repository.save(entity);
+  }
+
+  /**
+   * Remove a {{camelCase name}} by ID.
+   *
+   * @param id - The {{camelCase name}} ID
+   * @throws NotFoundException if entity does not exist
+   */
+  async remove(id: number): Promise<void> {
+    const entity = await this.findOne(id);
+    await this.{{camelCase name}}Repository.remove(entity);
+  }
+
+  /**
+   * Validate business rules before creation.
+   *
+   * @param dto - The creation payload to validate
+   * @throws BadRequestException if validation fails
+   */
+  private async validateCreate(dto: Create{{pascalCase name}}Dto): Promise<void> {
+    // Add business-specific validation rules here
+    // Example: check for uniqueness, validate references, etc.
+  }
+}

@@ -1,5 +1,5 @@
 """
-ForgeFlow MCP Connector — Sample Python Client
+Otomate MCP Connector — Sample Python Client
 ================================================
 
 Demonstrates how to connect to the ce-mcp server and invoke MCP tools
@@ -36,7 +36,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s — %(message)s",
 )
-logger = logging.getLogger("forgeflow.mcp")
+logger = logging.getLogger("otomate.mcp")
 
 
 @dataclass
@@ -296,7 +296,7 @@ def main() -> None:
     """Run all sample MCP tool calls."""
 
     print("=" * 60)
-    print("  ForgeFlow — MCP Connector Sample")
+    print("  Otomate — MCP Connector Sample")
     print("=" * 60)
 
     config = MCPConfig()

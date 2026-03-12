@@ -1,6 +1,6 @@
 # Merge Request Description Template
 
-Use this template for all MR descriptions created by ForgeFlow. Replace placeholders with actual data.
+Use this template for all MR descriptions created by Otomate. Replace placeholders with actual data.
 
 ---
 
@@ -178,4 +178,4 @@ Before merging, ensure:
 
 ---
 
-**Created via ForgeFlow** — Multi-Agent Development Workflow Orchestrator
+**Created via Otomate** — Multi-Agent Development Workflow Orchestrator

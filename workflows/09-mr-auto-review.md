@@ -59,7 +59,7 @@ The Code Agent performs 6 review dimensions. Each finding is rated:
 ```
 🎯 GOAL: Verify code follows project conventions
 
-READ: coding_standards from forgeflow.config.yml
+READ: coding_standards from otomate.config.yml
 
 FOR EACH changed file:
   CHECK naming:
@@ -99,7 +99,7 @@ AGGREGATION:
 ```
 🎯 GOAL: Verify files are in correct layers and dependencies flow correctly
 
-READ: architecture from forgeflow.config.yml
+READ: architecture from otomate.config.yml
 
 FOR EACH new file:
   CHECK: Is it in the correct directory for its type?
@@ -293,7 +293,7 @@ IF pipeline NOT TRIGGERED → 🟡 WARNING: "No pipeline run found for this MR"
 Assemble all dimension results into a structured report:
 
 ```
-## 🔍 ForgeFlow Auto-Review: MR !{id}
+## 🔍 Otomate Auto-Review: MR !{id}
 
 **{title}**
 Branch: `{source}` → `{target}` | Files: {count} | Lines: +{add} -{del}
@@ -338,7 +338,7 @@ Linked Jira: {JIRA-KEY} — {jira_title}
 {Non-blocking suggestions for improvement}
 
 ---
-_Auto-reviewed by ForgeFlow • {timestamp}_
+_Auto-reviewed by Otomate • {timestamp}_
 ```
 
 ### Verdict Logic

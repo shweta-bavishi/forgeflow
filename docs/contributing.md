@@ -1,6 +1,6 @@
-# Contributing to ForgeFlow
+# Contributing to Otomate
 
-How to extend ForgeFlow with new agents, workflows, templates, and improvements.
+How to extend Otomate with new agents, workflows, templates, and improvements.
 
 ## Architecture Overview
 
@@ -63,7 +63,7 @@ Every workflow must follow these principles:
 
 ### 3. Update Orchestrator
 
-Add trigger patterns to `agents/forgeflow-orchestrator.md`:
+Add trigger patterns to `agents/otomate-orchestrator.md`:
 
 ```markdown
 | "Your trigger phrase" | XX-workflow-name | trigger, keywords |
@@ -153,7 +153,7 @@ Use Handlebars syntax for placeholders:
 
 ### 3. Update Config
 
-Add template mappings to `forgeflow.config.example.yml`:
+Add template mappings to `otomate.config.example.yml`:
 
 ```yaml
 scaffolds:
@@ -188,7 +188,7 @@ Add new patterns based on real-world failures you encounter.
 
 ## Testing Changes
 
-1. Open a project with ForgeFlow configured
+1. Open a project with Otomate configured
 2. Start a Copilot Chat conversation
 3. Trigger the modified workflow
 4. Verify each phase works correctly
@@ -213,4 +213,4 @@ Add new patterns based on real-world failures you encounter.
 
 ---
 
-**Questions?** Open a discussion or reach out to the ForgeFlow maintainers.
+**Questions?** Open a discussion or reach out to the Otomate maintainers.

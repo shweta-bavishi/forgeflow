@@ -1,0 +1,53 @@
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm';
+
+/**
+ * {{pascalCase name}} entity representing the {{camelCase name}} domain model.
+ *
+ * @class {{pascalCase name}}
+ */
+@Entity('{{snakeCase name}}s')
+export class {{pascalCase name}} {
+  /**
+   * Auto-generated primary key.
+   */
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  /**
+   * Name or title of the {{camelCase name}}.
+   */
+  @Column({ type: 'varchar', length: 255 })
+  @Index()
+  name: string;
+
+  /**
+   * Optional description.
+   */
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  /**
+   * Whether this {{camelCase name}} is currently active.
+   */
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
+
+  /**
+   * Timestamp when the record was created.
+   */
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
+
+  /**
+   * Timestamp when the record was last updated.
+   */
+  @UpdateDateColumn({ type: 'timestamp' })
+  updatedAt: Date;
+}

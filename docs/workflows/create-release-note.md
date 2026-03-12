@@ -21,13 +21,13 @@
 ## How to Trigger
 
 ```
-@forgeflow create release note for v2.4.0
+@otomate create release note for v2.4.0
 ```
 
 Or if tickets are tagged with a fix version:
 
 ```
-@forgeflow generate release note — fixVersion = "2.4.0"
+@otomate generate release note — fixVersion = "2.4.0"
 ```
 
 ## What Happens
