@@ -247,19 +247,38 @@ OPTION B (Two Steps):
 
 ## Nexus IQ Tools (7 tools)
 
-Software composition analysis and dependency security.
+Software composition analysis and dependency security. **Primary tools for the Security Agent** in Workflow 10 (Security Audit).
 
 | Tool | Purpose | When to Use |
 |------|---------|-----------|
-| `get_nexusiq_application` | Get Nexus IQ application details | Fetching application metadata |
-| `get_nexusiq_component_details` | Get component detailed information | Analyzing specific dependencies |
-| `get_nexusiq_report_policy_violations` | Get policy violation details from scan report | Checking for dependency policy violations |
-| `search_nexusiq_components` | Search Nexus IQ components | Finding components in the repository |
-| `list_nexusiq_application_reports` | List scan reports for a Nexus IQ application | Viewing dependency scan history |
-| `list_nexusiq_applications` | List Nexus IQ applications | Discovering applications in Nexus IQ |
-| `list_nexusiq_organizations` | List Nexus IQ organizations | Discovering organizational structure |
+| `get_nexusiq_application` | Get Nexus IQ application details (name, ID, organization) | Start of security audit — get application metadata |
+| `get_nexusiq_component_details` | Get **detailed** component info (CVEs, fixed versions, CVSS scores, affected ranges) | **PRIMARY diagnosis tool** — per-component vulnerability analysis |
+| `get_nexusiq_report_policy_violations` | Get all policy violations from a scan report (security, license, quality) | **PRIMARY data source** — lists all violations with threat levels |
+| `search_nexusiq_components` | Search Nexus IQ components by name/coordinates | Finding specific components when exact identifier is unknown |
+| `list_nexusiq_application_reports` | List scan reports for a Nexus IQ application (with dates) | Finding the MOST RECENT scan report to analyze |
+| `list_nexusiq_applications` | List all Nexus IQ applications | Discovering the correct application when not configured |
+| `list_nexusiq_organizations` | List Nexus IQ organizations | Discovering organizational structure; rarely needed |
 
-**Usage**: These tools support dependency security analysis. While not used in core 8 workflows, they can be integrated into extended workflows for supply chain security checks.
+### Nexus IQ Usage Patterns
+
+**Pattern: Security Audit (Workflow 10)**
+```
+1. get_nexusiq_application → get application metadata
+   OR get_sonar_project_and_nexus_iq_application_by_gitlab → auto-discover
+2. list_nexusiq_application_reports → find latest scan report
+3. get_nexusiq_report_policy_violations → get all violations
+4. FOR EACH violation:
+   a. get_nexusiq_component_details → get CVE details, fixed version
+   b. get_file_content (GitLab) → read dependency file for current version
+   c. search_in_repository (GitLab) → check if component is imported (reachability)
+5. [Security Agent assesses reachability and remediation strategy]
+```
+
+**Pattern: Component Investigation**
+```
+1. search_nexusiq_components(name) → find component
+2. get_nexusiq_component_details(identifier) → get full vulnerability data
+```
 
 ---
 
@@ -296,14 +315,32 @@ Infrastructure automation and orchestration.
 
 ## Zephyr (Test Management) Tools (2 tools)
 
-Test case and test execution management.
+Test case and test execution management. **Primary tools for the Test Agent** in Workflow 11 (Generate Test Plan).
 
 | Tool | Purpose | When to Use |
 |------|---------|-----------|
-| `create_zephyr_test` | Create a Zephyr Test issue in Jira | Creating automated test cases linked to stories |
-| `update_zephyr_test` | Update an existing Zephyr Test issue | Updating test status, results, attachments |
+| `create_zephyr_test` | Create a Zephyr Test issue in Jira with full test case details | **PRIMARY** — creating test cases linked to stories/epics |
+| `update_zephyr_test` | Update an existing Zephyr Test issue (status, results, steps) | Updating test execution results, modifying test steps |
 
-**Usage**: For test management workflows. Code Agent can generate test code; Zephyr tools link it to Jira test issues.
+### Zephyr Usage Patterns
+
+**Pattern: Generate Test Plan (Workflow 11)**
+```
+1. get_jira_issue_detail → fetch acceptance criteria from source story
+2. search_jira_issues → check for existing linked tests (avoid duplicates)
+3. [Test Agent derives test cases from criteria]
+4. FOR EACH approved test case:
+   a. create_zephyr_test → create test issue with full details
+   b. link_issues → link test to source story ("Tests" link type)
+5. [Report: created test keys with links]
+```
+
+**Pattern: Update Test Results**
+```
+1. update_zephyr_test(test_key, status="PASS/FAIL", results={...})
+```
+
+**Fallback**: If `create_zephyr_test` fails (Zephyr not configured), fall back to `create_jira_subtask` with test details in the description.
 
 ---
 
@@ -351,6 +388,9 @@ To verify that all required MCP tools are available:
 | 06-sonar-fix | SonarQube (get_sonar_project_issues), Code Agent, GitLab | Jira (update) |
 | 07-create-release-build | GitLab (review_merge_request), Release (create_release_from_history), Jira (update_jira_issue) | Jenkins (verify pipeline) |
 | 08-create-release-note | Confluence (create_confluence_page), Jira (search), GitLab (get commits) | None |
+| 09-mr-auto-review | GitLab (review_merge_request, review_and_comment_mr), SonarQube, Code Agent | Jira (get_jira_issue_detail) |
+| 10-security-audit | Nexus IQ (all 7 tools), SonarQube (security issues), GitLab (get_file_content, search) | Jira (create_jira_issue), GitLab (commit_file_and_create_mr) |
+| 11-generate-test-plan | Zephyr (create_zephyr_test), Jira (get_jira_issue_detail, search, link_issues) | GitLab (search_in_repository, get_file_content) |
 
 ---
 
@@ -376,5 +416,6 @@ All MCP tools require authentication. Do NOT hardcode credentials:
 - **Confluence**: Set `CONFLUENCE_TOKEN` environment variable or Copilot Chat secret
 - **Jenkins**: Set `JENKINS_USER` and `JENKINS_TOKEN` environment variables
 - **SonarQube**: Set `SONARQUBE_TOKEN` environment variable or Copilot Chat secret
+- **Nexus IQ**: Set `NEXUSIQ_TOKEN` environment variable or Copilot Chat secret
 
 For security, use Copilot Chat's integrated credential management rather than environment variables in production.

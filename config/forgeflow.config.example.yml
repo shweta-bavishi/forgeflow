@@ -269,6 +269,9 @@ approval_gates:
     - "create_release_note"          # Publishing release notes
     - "push_code_to_remote"          # All code pushes
     - "update_jira_status_to_done"   # Closing issues
+    - "post_mr_review_comment"       # Before posting auto-review to MR
+    - "create_security_fix_mr"       # Before creating dependency fix MR
+    - "create_zephyr_tests"          # Before creating test cases in Zephyr
 
   # Actions that can auto-approve if conditions are met
   # (still requires human review, but workflow can proceed if checks pass)
@@ -279,6 +282,61 @@ approval_gates:
 # ============================================================================
 # OPTIONAL: ADVANCED CONFIGURATIONS
 # ============================================================================
+
+# ============================================================================
+# NEXUS IQ CONFIGURATION
+# ============================================================================
+nexusiq:
+  # Nexus IQ application name (must match the application registered in Nexus IQ)
+  application_name: ""
+
+  # Nexus IQ organization (optional — helps narrow discovery)
+  organization: ""
+
+  # If not configured, ForgeFlow will auto-discover via
+  # get_sonar_project_and_nexus_iq_application_by_gitlab
+
+# ============================================================================
+# ZEPHYR CONFIGURATION (Test Management)
+# ============================================================================
+zephyr:
+  # Issue type name for Zephyr tests (must match your Jira instance)
+  test_issue_type: "Test"
+
+  # Link type used to connect tests to stories (e.g., "Tests", "is tested by")
+  test_link_type: "Tests"
+
+  # Labels automatically applied to generated test cases
+  labels:
+    - "zephyr"
+    - "forgeflow-generated"
+
+# ============================================================================
+# AUTO-REVIEW CONFIGURATION (MR Review Workflow)
+# ============================================================================
+auto_review:
+  # Which dimensions to include in MR auto-review
+  dimensions:
+    standards_compliance: true
+    architecture_compliance: true
+    test_coverage: true
+    quality_gate: true
+    jira_alignment: true
+    code_quality: true
+
+  # Minimum coverage threshold to pass review (overrides coding_standards if set)
+  coverage_threshold: 80
+
+  # Auto-post review comment or always ask developer first
+  auto_post: false  # RECOMMENDED: always ask before posting
+
+  # Patterns to flag in code review (found in diff → WARNING)
+  forbidden_patterns:
+    - "console.log"
+    - "debugger"
+    - "TODO"
+    - "FIXME"
+    - "HACK"
 
 # Code owner rules for MR reviewers (optional, uses .gitlab/CODEOWNERS format)
 codeowners_path: ".gitlab/CODEOWNERS"
@@ -337,3 +395,8 @@ integrations:
     # URL of your SonarQube instance
     url: "https://sonarqube.your-org.com"
     # Token loaded from env: SONARQUBE_TOKEN
+
+  nexusiq:
+    # URL of your Nexus IQ instance
+    url: "https://nexusiq.your-org.com"
+    # Token loaded from env: NEXUSIQ_TOKEN

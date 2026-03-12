@@ -32,6 +32,9 @@ Match developer intent to workflows using these patterns:
 | "Fix sonar issues", "Resolve sonar report", "Help me pass quality gate" | 06-sonar-fix | fix sonar, sonar issues, quality gate, code quality |
 | "Create release build", "Ship MR !{id}", "Release v{version}" | 07-create-release-build | release, create release build, ship, merge release |
 | "Create release note for v{version}", "Publish release notes" | 08-create-release-note | release note, create release note, publish notes |
+| "Review my MR", "Auto-review MR !{id}", "Pre-review my changes", "Is my MR ready for review?" | 09-mr-auto-review | review MR, auto-review, pre-review, check MR |
+| "Run security audit", "Check vulnerabilities", "Audit dependencies", "Check Nexus IQ report" | 10-security-audit | security audit, vulnerabilities, audit dependencies, nexus iq, CVE |
+| "Generate test plan for {KEY}", "Create test cases", "Generate Zephyr tests", "Create QA tests" | 11-generate-test-plan | test plan, test cases, zephyr tests, QA tests, generate tests |
 
 ## Decision Trees
 
@@ -47,9 +50,12 @@ IF developer says something vague like "help me"
       5) Fix a pipeline failure
       6) Fix code quality issues
       7) Create a release build
-      8) Create release notes"
+      8) Create release notes
+      9) Auto-review a merge request
+      10) Run a security audit
+      11) Generate a test plan"
 
-IF developer's intent matches one of the 8 workflows
+IF developer's intent matches one of the 11 workflows
   → Continue to: PREREQUISITES CHECK
 
 IF developer's intent doesn't match any workflow
@@ -308,23 +314,28 @@ Recommended workflow sequences:
     ▼                                                  │
 02-plan-epics ────→ 03-plan-dev-tasks                  │
                          │                             │
+                         ├──→ 11-generate-test-plan    │
                          ▼                             │
                     04-implement-dev-task               │
                          │                             │
-                    ┌────┴────┐                        │
-                    ▼         ▼                        │
-              05-fix-pipeline  06-sonar-fix             │
-                    │         │                        │
-                    └────┬────┘                        │
-                         ▼                             │
-                    07-create-release-build             │
-                         │                             │
-                         ▼                             │
-                    08-create-release-note              │
+                    ┌────┼────┐                        │
+                    ▼    ▼    ▼                        │
+              05-fix  06-sonar 09-mr-auto-review       │
+              pipeline  fix                            │
+                    │    │                             │
+                    └──┬─┘                             │
+                       ▼                               │
+                  10-security-audit (optional)          │
+                       │                               │
+                       ▼                               │
+                  07-create-release-build               │
+                       │                               │
+                       ▼                               │
+                  08-create-release-note                │
                                                        │
-                    ALL WORKFLOWS REQUIRE: ◄────────────┘
-                      forgeflow.config.yml
-                      (from 01-init-project)
+                  ALL WORKFLOWS REQUIRE: ◄─────────────┘
+                    forgeflow.config.yml
+                    (from 01-init-project)
 ```
 
 ### Typical Development Cycle
@@ -333,14 +344,17 @@ Recommended workflow sequences:
 1. Init project (once per project)
 2. Plan epics from Confluence requirements
 3. For each epic: Plan dev tasks
+3b. Generate test plan for the epic/stories (Workflow 11)
 4. For each task:
    a. Implement dev task → creates MR
    b. Fix pipeline (if build fails)
    c. Fix sonar issues (if quality gate fails)
-   d. Get MR reviewed and approved
-5. Create release build (merge + tag)
-6. Create release note (document the release)
-7. Repeat from step 3 for next sprint
+   d. Auto-review MR (Workflow 09) → catch issues early
+   e. Get MR reviewed and approved
+5. Run security audit before release (Workflow 10)
+6. Create release build (merge + tag)
+7. Create release note (document the release)
+8. Repeat from step 3 for next sprint
 ```
 
 ## Global Retry & Resilience Policy
@@ -393,6 +407,6 @@ This agent is successful when:
 
 ---
 
-**Related Workflows**: All 8 workflows (01-08) are delegated by this agent
-**Related Agents**: Project Context Agent (called first in every workflow), all specialist agents
+**Related Workflows**: All 11 workflows (01-11) are delegated by this agent
+**Related Agents**: Project Context Agent (called first in every workflow), all specialist agents (Code, Jira, GitLab, Confluence, Jenkins, SonarQube, Security, Test)
 **Documentation**: See docs/onboarding.md for user-facing guide

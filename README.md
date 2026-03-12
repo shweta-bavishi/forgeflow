@@ -8,7 +8,7 @@ ForgeFlow is a collection of **markdown-based agents and workflows** that run in
 
 ### Key Features
 
-🚀 **8 Complete Workflows**
+🚀 **11 Complete Workflows**
 - Initialize project with auto-detection
 - Plan epics from Confluence requirements
 - Break epics into dev tasks
@@ -17,8 +17,11 @@ ForgeFlow is a collection of **markdown-based agents and workflows** that run in
 - Resolve SonarQube quality issues
 - Create release builds with validation
 - Generate and publish release notes
+- **Auto-review merge requests** with 6-dimension analysis
+- **Security audit** with Nexus IQ + SonarQube vulnerability analysis
+- **Generate test plans** with Zephyr test case creation
 
-🤖 **8 Specialized Agents**
+🤖 **10 Specialized Agents**
 Each agent is an expert in its domain with deep knowledge of patterns, conventions, and best practices:
 - **Orchestrator** — Routes requests to workflows
 - **Project Context** — Loads and provides project configuration
@@ -28,6 +31,8 @@ Each agent is an expert in its domain with deep knowledge of patterns, conventio
 - **Confluence Agent** — Parses requirements and publishes documentation
 - **Jenkins Agent** — Diagnoses pipeline failures
 - **SonarQube Agent** — Analyzes and fixes code quality issues
+- **Security Agent** — Dependency vulnerability analysis and remediation
+- **Test Agent** — Translates requirements into structured test cases
 
 🔧 **113 MCP Tools**
 Pre-configured access to Jira, GitLab, Confluence, Jenkins, SonarQube, and more. Every workflow uses these tools to interact with your development infrastructure.
@@ -86,7 +91,7 @@ Implement PROJ-123
 
 Done! You're using ForgeFlow.
 
-## The 8 Workflows
+## The 11 Workflows
 
 | Workflow | Trigger | Output | Time |
 |----------|---------|--------|------|
@@ -98,6 +103,9 @@ Done! You're using ForgeFlow.
 | **06 — Sonar Fix** | "Fix sonar issues" | Quality fixes + MR | 30 min |
 | **07 — Create Release** | "Release v{version}" | Merged to develop + tagged | 20 min |
 | **08 — Release Note** | "Create release note for v{version}" | Confluence documentation | 15 min |
+| **09 — MR Auto-Review** | "Review my MR" | 6-dimension review + MR comment | 15-25 min |
+| **10 — Security Audit** | "Run security audit" | Vulnerability report + fix MR/Jira | 20-40 min |
+| **11 — Generate Test Plan** | "Generate test plan for {KEY}" | Zephyr test cases linked to stories | 15-30 min |
 
 ## Architecture Overview
 
@@ -117,6 +125,8 @@ Done! You're using ForgeFlow.
                               │  - Confluence Agent    │
                               │  - Jenkins Agent       │
                               │  - SonarQube Agent     │
+                              │  - Security Agent      │
+                              │  - Test Agent          │
                               └──────────┬─────────────┘
                                          │
                     ┌────────────────────┼────────────────────┐
@@ -207,7 +217,9 @@ forgeflow/
 │   ├── gitlab-agent.md
 │   ├── confluence-agent.md
 │   ├── jenkins-agent.md
-│   └── sonar-agent.md
+│   ├── sonar-agent.md
+│   ├── security-agent.md
+│   └── test-agent.md
 │
 ├── workflows/
 │   ├── 01-init-project.md
@@ -217,7 +229,10 @@ forgeflow/
 │   ├── 05-fix-pipeline.md
 │   ├── 06-sonar-fix.md
 │   ├── 07-create-release-build.md
-│   └── 08-create-release-note.md
+│   ├── 08-create-release-note.md
+│   ├── 09-mr-auto-review.md
+│   ├── 10-security-audit.md
+│   └── 11-generate-test-plan.md
 │
 ├── templates/
 │   ├── mr-description.md
@@ -235,16 +250,25 @@ forgeflow/
 │   ├── forgeflow.config.example.yml
 │   └── mcp-tools-reference.md
 │
+├── scripts/
+│   └── mcp_connector.py          (sample MCP client)
+│
 └── docs/
     ├── configuration.md
     ├── mcp-setup.md
     ├── onboarding.md
     ├── troubleshooting.md
     ├── contributing.md
-    └── workflows/
-        ├── init-project.md
-        ├── plan-epics.md
-        └── ... (one per workflow)
+    ├── workflows/                 (one guide per workflow)
+    │   ├── init-project.md
+    │   ├── plan-epics.md
+    │   ├── ...
+    │   ├── mr-auto-review.md
+    │   ├── security-audit.md
+    │   └── generate-test-plan.md
+    └── agents/                    (agent design references)
+        ├── security-agent.md
+        └── test-agent.md
 ```
 
 ## Key Concepts
