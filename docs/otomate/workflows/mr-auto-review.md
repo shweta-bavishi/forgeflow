@@ -4,15 +4,24 @@
 
 ## What It Does
 
-Performs a structured 6-dimension review of a merge request: standards compliance, architecture compliance, test coverage, quality gate, Jira alignment, and code quality. Produces a severity-rated report and optionally posts it as an MR comment.
+Performs a structured 6-dimension review of a merge request: standards compliance, architecture compliance, test coverage, quality gate, Jira alignment, and code quality. Produces a severity-rated report — including a **"Tasks Completed"** section that summarizes all work done — and optionally posts it as an MR comment.
 
 ## How to Use
 
 1. Say: **"Review my MR"** or **"Auto-review MR !456"**
 2. Otomate fetches MR data (diff, commits, pipeline, Jira link)
 3. Runs 6-dimension analysis
-4. Presents review report with verdict
-5. Choose: post to MR, edit findings, fix issues, or keep for reference
+4. Builds a **"Tasks Completed"** section that maps commits/changes to tasks accomplished, referencing Jira acceptance criteria
+5. Presents review report with verdict
+6. Choose: post to MR, edit findings, fix issues, or keep for reference
+
+## Tasks Completed Section
+
+The review report now includes a **Tasks Completed** section that tells human reviewers exactly what was done:
+- Lists each task/change with the files involved
+- Cross-references Jira acceptance criteria
+- Shows how many acceptance criteria are addressed
+- Gives reviewers a clear purpose for each code change
 
 ## Review Dimensions
 

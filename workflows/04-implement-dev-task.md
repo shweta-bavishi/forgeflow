@@ -41,9 +41,29 @@ Code Agent reads:
 
 **Purpose**: Generate code that matches project style and patterns
 
-## Phase 2: CREATE IMPLEMENTATION PLAN
+## Phase 2: RE-ANALYZE & CREATE IMPLEMENTATION PLAN
 
-Code Agent produces detailed plan:
+Even if the Jira task already contains an implementation plan (from workflow 03),
+Code Agent MUST perform a fresh analysis of the current codebase state before coding.
+The codebase may have changed since the task was planned.
+
+### Re-Analysis Steps
+
+```
+1. Read the implementation plan from Jira description (if present)
+2. Scan current codebase for:
+   - Files that may have been added/modified since planning
+   - New patterns or conventions introduced
+   - Dependencies that may have changed
+   - Conflicts with recently merged code
+3. Compare Jira plan against actual codebase state
+4. Update plan if discrepancies found
+```
+
+### Generate Detailed Implementation Plan (Todo List)
+
+Code Agent produces a detailed, step-by-step implementation plan as a **todo list**.
+This plan MUST be presented to the developer for approval BEFORE any code is written.
 
 ```
 ## Implementation Plan for PROJ-123: Avatar Upload Endpoint
@@ -57,6 +77,59 @@ Enable users to upload custom avatar images with validation and compression.
 3. Image automatically compressed to 300x300px
 4. Avatar URL returned in response
 5. Errors handled gracefully with clear messages
+
+### Implementation Todo List
+
+Present as a checklist that the developer can review and approve:
+
+- [ ] 1. Create Avatar entity (src/entities/avatar.entity.ts)
+      - Add TypeORM decorators: @Entity, @Column, @PrimaryGeneratedColumn
+      - Fields: id, userId, fileName, fileSize, mimeType, uploadedAt
+      - Follow User entity pattern (src/entities/user.entity.ts)
+
+- [ ] 2. Create AvatarRepository (src/repositories/avatar.repository.ts)
+      - Methods: save(), findByUserId(), deleteByUserId()
+      - Follow UserRepository pattern
+
+- [ ] 3. Create UploadAvatarDto (src/dto/upload-avatar.dto.ts)
+      - class-validator decorators: @IsNotEmpty, @MaxFileSize(5MB)
+      - File type validation: @IsIn(['image/jpeg', 'image/png'])
+
+- [ ] 4. Implement AvatarService (src/services/avatar.service.ts)
+      - uploadAvatar(): validate → compress → store → persist metadata
+      - deleteAvatar(): delete file + DB record
+      - getAvatarUrl(): fetch URL by userId
+      - Use sharp library for compression (300x300px)
+      - Error handling: InvalidFileException, FileTooLargeException
+
+- [ ] 5. Create AvatarController (src/controllers/avatar.controller.ts)
+      - POST /users/:id/avatar — upload endpoint
+      - DELETE /users/:id/avatar — delete endpoint
+      - GET /users/:id/avatar — fetch URL
+      - Use JwtAuthGuard for authentication
+      - Follow UserController pattern
+
+- [ ] 6. Register in AppModule (src/app.module.ts)
+      - Add AvatarController to controllers array
+      - Add AvatarService to providers array
+
+- [ ] 7. Add avatarUrl field to User entity (src/users/user.entity.ts)
+      - Optional field: @Column({ nullable: true })
+
+- [ ] 8. Write unit tests (tests/avatar.service.spec.ts)
+      - Test: validates file size < 5MB
+      - Test: compresses image to 300x300
+      - Test: persists metadata to repository
+      - Test: returns avatar URL
+      - Test: throws error on invalid file type
+      - Test: deleteAvatar removes file + record
+
+- [ ] 9. Write integration test (tests/avatar.e2e-spec.ts)
+      - Test: full upload flow with multipart/form-data
+      - Test: 400 response for oversized file
+
+This todo list serves as the contract for implementation.
+Developer approves it BEFORE any code is generated.
 
 ### Files to Create
 
@@ -151,30 +224,47 @@ Risk: Large file uploads timeout
   Mitigation: Set appropriate timeouts in NestJS config
 ```
 
-## Phase 3: 🚦 HITL GATE — Developer Approves Plan
+## Phase 3: 🚦 HITL GATE — Developer Approves Implementation Plan
 
-Developer reviews plan and can:
+**MANDATORY**: The implementation plan (todo list) MUST be approved by the developer
+before ANY code is written. This is a hard gate — no skipping.
+
+Developer reviews the implementation todo list and can:
 
 ```
 1. ADJUST scope
    "Don't compress for now, just store original file"
-   Agent: [Updates plan]
+   Agent: [Updates todo list, removes compression step]
 
 2. REQUEST clarifications
    "Where should files be stored? Disk or S3?"
-   Agent: [Explains approach, adjusts if needed]
+   Agent: [Explains approach, adjusts todo list if needed]
 
 3. POINT to reference code
    "Check src/documents/document.service.ts for upload pattern"
-   Agent: [Reads file, incorporates pattern]
+   Agent: [Reads file, updates todo list to incorporate pattern]
 
 4. MODIFY requirements
    "Add watermark to avatar before storing"
-   Agent: [Updates plan with new requirement]
+   Agent: [Adds new step to todo list]
 
-5. APPROVE
+5. ADD/REMOVE steps
+   "Skip integration tests for now, add them later"
+   Agent: [Removes step 9 from todo list]
+
+6. REORDER steps
+   "Create the controller before the service"
+   Agent: [Reorders todo list]
+
+7. APPROVE
    "Looks good, let's build it"
-   Agent: Proceeds to code generation
+   Agent: Proceeds to code generation, following the approved todo list
+
+IMPORTANT:
+  - Each step in the approved todo list becomes a code generation unit
+  - Agent tracks which steps are complete during implementation
+  - If a step reveals issues, agent pauses and consults developer
+  - The approved plan is the contract — deviations require re-approval
 ```
 
 ## Phase 4: CREATE BRANCH
@@ -420,13 +510,15 @@ Add comment:
 
 ## Success Criteria
 
-✓ Task is fully analyzed before coding
-✓ Implementation plan approved by developer
+✓ Fresh codebase re-analysis performed (even if Jira has a plan)
+✓ Detailed implementation plan (todo list) presented to developer
+✓ Implementation plan approved by developer BEFORE any code is written
+✓ Code generation follows the approved todo list step-by-step
 ✓ Code is production-ready (no stubs)
 ✓ Code follows project patterns
 ✓ Tests cover acceptance criteria
 ✓ Code review happens before push
-✓ MR is created with detailed description
+✓ MR is created with detailed description (includes completed todo list)
 ✓ Jira is updated with links and status
 
 ---

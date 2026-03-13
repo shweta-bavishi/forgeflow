@@ -328,6 +328,34 @@ Linked Jira: {JIRA-KEY} — {jira_title}
 
 ---
 
+### ✅ Tasks Completed
+{Summary of all work done in this MR, extracted from commits, Jira,
+ and code analysis. This section gives reviewers a clear picture of
+ what was accomplished.}
+
+1. {Task/change description — e.g., "Created AvatarService with upload, delete, getUrl methods"}
+   Files: src/services/avatar.service.ts (NEW, 78 lines)
+2. {Task/change description — e.g., "Added POST /users/:id/avatar endpoint with validation"}
+   Files: src/controllers/avatar.controller.ts (NEW, 45 lines)
+3. {Task/change description — e.g., "Implemented image compression to 300x300px using sharp"}
+   Files: src/services/avatar.service.ts (lines 34-56)
+4. {Task/change description — e.g., "Added unit tests covering 6 scenarios"}
+   Files: tests/avatar.service.spec.ts (NEW, 145 lines)
+5. {Task/change description — e.g., "Registered Avatar module in AppModule"}
+   Files: src/app.module.ts (MODIFIED, +3 lines)
+
+**Jira:** {JIRA-KEY} — {jira_title}
+**Acceptance Criteria Met:** {N}/{total} criteria addressed by changes
+
+HOW TO BUILD THIS SECTION:
+  1. Read all commit messages in the MR for task descriptions
+  2. Cross-reference with Jira acceptance criteria (if linked)
+  3. Map each changed file to the task/feature it implements
+  4. Summarize what was built, fixed, or changed — not just "files modified"
+  5. This helps human reviewers understand the PURPOSE of each change
+
+---
+
 ### 🎯 Action Items
 {Numbered list of specific things to fix, ordered by severity:
   1. 🔴 {blocker description} — {file:line}
@@ -484,6 +512,8 @@ Large MR (> 50 files):
 ## Success Criteria
 
 ✓ All 6 review dimensions are evaluated (or noted as skipped with reason)
+✓ "Tasks Completed" section summarizes ALL work done in the MR
+✓ Tasks Completed maps commits/changes to purpose and Jira criteria
 ✓ Findings are specific: file name, line number, concrete issue
 ✓ Verdict is accurate and calibrated (not too strict, not too lenient)
 ✓ Action items are prioritized and actionable

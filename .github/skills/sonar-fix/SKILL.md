@@ -96,10 +96,39 @@ Developer selects which issues to fix:
   - "Skip for now"
 ```
 
-## Phase 6: GENERATE FIXES
+## Phase 6: CREATE FIX IMPLEMENTATION PLAN
 
 ```
-FOR each approved fix:
+Before generating any code, present a step-by-step fix plan:
+
+## Sonar Fix Plan
+
+### Fix Todo List
+- [ ] 1. Fix {rule} in {file} (line {N})
+       Action: {specific change}
+       Before: {current code}
+       After: {proposed code}
+- [ ] 2. ...
+
+### Expected Impact
+Quality gate: FAILED → PASSED (estimated)
+
+This plan must be approved before fix code is generated.
+```
+
+## Phase 6b: 🚦 HITL GATE — Developer Approves Fix Plan
+
+```
+Developer reviews the fix implementation plan (todo list)
+Can: approve all, modify specific fixes, skip fixes, cancel
+
+IMPORTANT: No code changes until fix plan is approved.
+```
+
+## Phase 7: GENERATE FIXES
+
+```
+FOR each approved fix in the plan:
 
   1. Read source file:
      Call: get_file_content(file_path)
@@ -123,14 +152,14 @@ FOR each approved fix:
        return user.name;
 ```
 
-## Phase 7: 🚦 HITL GATE — Review Fixes
+## Phase 8: 🚦 HITL GATE — Review Fixes
 
 ```
 Developer reviews all generated fixes
 Multi-round iteration until satisfied
 ```
 
-## Phase 8: COMMIT & MR
+## Phase 9: COMMIT & MR
 
 ```
 Call: commit_file_and_create_mr(
@@ -141,7 +170,7 @@ Call: commit_file_and_create_mr(
 )
 ```
 
-## Phase 9: VERIFY
+## Phase 10: VERIFY
 
 ```
 After MR is merged (inform developer):

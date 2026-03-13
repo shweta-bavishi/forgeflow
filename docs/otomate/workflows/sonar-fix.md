@@ -11,13 +11,17 @@ Fetches SonarQube issues, categorizes them by fixability (auto-fixable, agent-as
 1. Say: **"Fix sonar issues"**
 2. Otomate fetches all issues and quality gate status
 3. Categorizes: auto-fixable vs needs-review vs manual
-4. Select which issues to fix → code fixes generated
-5. Review fixes → approve → fix MR created
+4. Select which issues to fix
+5. Presents a **fix implementation plan** (todo list) with specific before/after for each issue
+6. Review fix plan → approve → **no code changes until plan is approved**
+7. Fix code generated → review → approve → fix MR created
 
 ## HITL Gates
 
 1. Select which issues to fix
-2. Review generated fixes
+2. **Approve fix implementation plan (mandatory)** — step-by-step todo list of changes
+3. Review generated fix code
+4. Approve push and MR creation
 
 ## Issue Categories
 

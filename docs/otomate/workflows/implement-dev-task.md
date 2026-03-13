@@ -9,15 +9,16 @@ Fetches a Jira task, analyzes project code, creates an implementation plan, gene
 ## How to Use
 
 1. Say: **"Implement PROJ-123"**
-2. Otomate fetches the task and analyzes your codebase
-3. Presents file-by-file implementation plan
-4. Review plan → approve → code generated
-5. Review code → approve → MR created
-6. Jira updated to "In Review"
+2. Otomate fetches the task and **re-analyzes your current codebase** (even if the Jira task already has an implementation plan — the codebase may have changed)
+3. Presents a **detailed implementation plan as a todo list** — each step specifies the action, file, and pattern to follow
+4. Review plan → modify if needed → approve → **no code is generated until plan is approved**
+5. Code is generated following the approved todo list step-by-step
+6. Review code → approve → MR created
+7. Jira updated to "In Review"
 
 ## HITL Gates
 
-1. Approve implementation plan
+1. **Approve implementation plan (mandatory)** — detailed todo list must be approved before ANY code is generated
 2. Review generated code (multi-round)
 3. Approve push and MR creation
 

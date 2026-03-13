@@ -11,13 +11,16 @@ Fetches Jenkins build logs, diagnoses the root cause using an error catalog, gen
 1. Say: **"Fix pipeline"**
 2. Otomate identifies the failed build and fetches console logs
 3. Diagnoses: compilation, dependency, test, config, infra, or lint error
-4. Presents diagnosis with root cause and proposed fix
-5. Review fix → approve → fix MR created
+4. Presents diagnosis with root cause
+5. Generates a **fix implementation plan** (todo list) with specific changes per file
+6. Review fix plan → approve → **no code changes until plan is approved**
+7. Fix code generated → review → approve → fix MR created
 
 ## HITL Gates
 
-1. Approve fix approach
-2. Review fix code
+1. **Approve fix implementation plan (mandatory)** — step-by-step todo list of changes
+2. Review generated fix code
+3. Approve push and MR creation
 
 ## Error Categories
 

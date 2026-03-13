@@ -138,10 +138,30 @@ STEP 2 — Create tasks:
       project_key: config.jira.project_key,
       issue_type: config.jira.task_issue_type,
       summary: task.title,
-      description: task.description + acceptance_criteria + affected_files,
+      description: task.description
+                  + implementation_plan_todo_list
+                  + acceptance_criteria
+                  + affected_files
+                  + implementation_patterns
+                  + dependencies_and_risks,
       story_points: task.points,
       labels: config.jira.labels
     )
+
+  IMPORTANT — Implementation Plan in Description:
+    The Jira description MUST include a step-by-step implementation
+    plan as a todo/checklist. This plan becomes the blueprint when
+    the task is picked up for development (manually or via workflow 04).
+
+    Example implementation plan section in description:
+      "### Implementation Plan
+       - [ ] Create {Entity} class with TypeORM decorators
+       - [ ] Add repository with findById, save, delete methods
+       - [ ] Implement service with business logic + validation
+       - [ ] Create controller endpoint with DTOs
+       - [ ] Register in module providers/imports
+       - [ ] Write unit tests for service (happy path + errors)
+       - [ ] Write integration test for controller endpoint"
 
 STEP 3 — Link to parent:
   Call: link_issues(task_key, story_key, "is part of")

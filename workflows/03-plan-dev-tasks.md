@@ -143,7 +143,8 @@ TASK 7: Write integration tests
 
 ### Create Detailed Task Descriptions
 
-For each task, include:
+For each task, include a **detailed implementation plan** in the Jira description.
+This plan serves as a blueprint for the developer or Otomate when implementing the task later.
 
 ```
 ## TASK: {Task Name}
@@ -158,6 +159,25 @@ For each task, include:
 
 ### Architectural Layer
 Controller, Service, Repository, Entity
+
+### Implementation Plan (Todo List)
+
+Include a step-by-step implementation checklist that can be followed
+when this task is picked up for development:
+
+- [ ] Step 1: {Specific action — e.g., "Create AvatarService class with DI for AvatarRepository"}
+- [ ] Step 2: {Specific action — e.g., "Add uploadAvatar() method with file validation (size < 5MB, type check)"}
+- [ ] Step 3: {Specific action — e.g., "Implement image compression using sharp (resize to 300x300)"}
+- [ ] Step 4: {Specific action — e.g., "Add file storage logic (save to /uploads/avatars/)"}
+- [ ] Step 5: {Specific action — e.g., "Create UploadAvatarDto with class-validator decorators"}
+- [ ] Step 6: {Specific action — e.g., "Write unit tests for validation, compression, and persistence"}
+- [ ] Step 7: {Specific action — e.g., "Register AvatarService in AvatarModule providers"}
+
+Each step should be:
+  - Actionable and specific (not vague like "implement feature")
+  - Ordered by dependency (foundation first, tests last)
+  - Small enough to verify independently
+  - Referencing specific files, methods, or patterns
 
 ### Implementation Patterns
 Reference existing code: "Follow pattern from src/controllers/user.controller.ts"
@@ -258,10 +278,21 @@ For each task:
     project_key: from config,
     issue_type: "Task" (or "Story" from config),
     summary: "{Epic-KEY-X}: {Task name}",
-    description: [Full task description from Phase 2],
+    description: [Full task description from Phase 2 INCLUDING Implementation Plan todo list],
     story_points: calculated from task description,
     priority: from epic priority
   )
+
+IMPORTANT: The Jira description MUST include:
+  1. What to Implement (functional description)
+  2. Files to Create/Modify (file paths with CREATE/MODIFY)
+  3. Implementation Plan (step-by-step todo list)
+  4. Implementation Patterns (reference existing code)
+  5. Acceptance Criteria
+  6. Dependencies and Risks
+
+The Implementation Plan is critical — it gives the developer (or Otomate's
+implement-dev-task workflow) a ready-made checklist to follow.
 
 Link to epic:
   Call: link_issues(epic_key, new_issue_key, "relates to")
@@ -315,6 +346,7 @@ NEXT STEPS:
 
 ✓ Epic is broken into logically independent tasks
 ✓ Each task has detailed technical description
+✓ Each task includes a step-by-step implementation plan (todo list) in its Jira description
 ✓ Dependencies are clearly identified
 ✓ Files to create/modify are specified
 ✓ Story points are realistic

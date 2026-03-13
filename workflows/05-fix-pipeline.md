@@ -146,25 +146,61 @@ Option 2: {Better fix}
   - Check if similar builds passed recently"
 ```
 
-## Phase 4: 🚦 HITL GATE — Developer Approves Fix
+## Phase 4: CREATE FIX IMPLEMENTATION PLAN
+
+Before making any code changes, generate a step-by-step fix plan as a todo list:
 
 ```
-Developer reviews diagnosis and can:
+## Fix Implementation Plan for {job_name} #{build_number}
 
-1. ACCEPT fix as proposed
-   → Proceed to create branch
+### Root Cause
+{One sentence diagnosis}
+
+### Fix Todo List
+- [ ] 1. {Specific action — e.g., "Update express version in package.json from ^4.17.0 to ^4.18.0"}
+       File: package.json (MODIFY line 15)
+       Reason: Resolves peer dependency conflict
+- [ ] 2. {Specific action — e.g., "Regenerate package-lock.json"}
+       File: package-lock.json (REGENERATE)
+- [ ] 3. {Specific action — e.g., "Fix null dereference in auth.controller.ts at line 42"}
+       File: src/controllers/auth.controller.ts (MODIFY line 42)
+       Before: return user.profile.name;
+       After: return user?.profile?.name ?? 'Unknown';
+
+### Expected Outcome
+{stage_name} stage will pass because: {specific reason}
+
+### Verification Steps
+1. Trigger Jenkins build on fix branch
+2. Verify {stage_name} stage passes
+3. Confirm no regressions in other stages
+```
+
+## Phase 4b: 🚦 HITL GATE — Developer Approves Fix Plan
+
+```
+Developer reviews the fix implementation plan (todo list) and can:
+
+1. ACCEPT plan as proposed
+   → Proceed to create branch and implement
 
 2. REQUEST more investigation
    "Can you check if this happened before?"
-   → Run more diagnostics
+   → Run more diagnostics, update plan
 
 3. PROVIDE context
    "We just upgraded Node to 18"
-   → Use context to improve diagnosis
+   → Use context to improve diagnosis, update plan
 
-4. DECLINE fix
+4. MODIFY plan
+   "Also update the CI config"
+   → Add/change steps in the todo list
+
+5. DECLINE fix
    "I'll fix this manually"
    → Stop workflow gracefully
+
+IMPORTANT: No code changes until the fix plan is approved.
 ```
 
 ## Phase 5: CREATE FIX BRANCH
@@ -331,9 +367,11 @@ If error is "service unavailable", "timeout", "connection refused":
 
 ✓ Root cause is identified with clear confidence level
 ✓ Diagnosis explains WHY the build failed
+✓ Fix implementation plan (todo list) presented to developer BEFORE any code changes
+✓ Developer approves fix plan before implementation begins
 ✓ Fix is specific and actionable
-✓ Developer approves before committing
-✓ MR is created with diagnosis details
+✓ Developer approves code changes before committing
+✓ MR is created with diagnosis details and completed fix plan
 ✓ Effort estimate is realistic
 ✓ Risk is honestly assessed
 

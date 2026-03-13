@@ -163,6 +163,24 @@ Call: get_project_pipelines(config.gitlab.project_id)
 {findings by category}
 
 ---
+
+### Tasks Completed
+{Summary of ALL work done in this MR. Map commits and code changes
+ to the tasks/features they implement:}
+
+1. {Task description} — Files: {file list}
+2. {Task description} — Files: {file list}
+...
+
+Jira: {JIRA-KEY} — Acceptance Criteria Met: {N}/{total}
+
+HOW TO BUILD:
+  - Read all commit messages for task descriptions
+  - Cross-reference with Jira acceptance criteria
+  - Map each changed file to purpose
+  - Summarize WHAT was built, not just what changed
+
+---
 ### Action Items
 {numbered list of blockers and warnings with file:line and fix suggestion}
 

@@ -111,9 +111,62 @@ Example:
   Agent: "That's 29 issues across 5 files. Proceed?"
 ```
 
-## Phase 4: GENERATE FIXES
+## Phase 4: CREATE FIX IMPLEMENTATION PLAN
 
-For each selected issue:
+Before generating any code fixes, present a step-by-step fix plan:
+
+```
+## Sonar Fix Implementation Plan
+
+### Selected Issues: {N} issues across {M} files
+
+### Fix Todo List
+- [ ] 1. Fix S2259 in user.service.ts (line 45)
+       Action: Add null check with optional chaining
+       Before: return user.profile.name;
+       After: return user?.profile?.name || 'Unknown';
+- [ ] 2. Fix S1128 in auth.controller.ts (line 12)
+       Action: Remove unused import
+       Before: import { unused, AuthService } from './services';
+       After: import { AuthService } from './services';
+- [ ] 3. Fix S3776 in order.service.ts (line 78)
+       Action: Refactor to reduce cognitive complexity (extract helper method)
+       Changes: Extract validation logic into validateOrder() method
+- [ ] ...
+
+### Expected Quality Gate Impact
+Before: FAILED ({N} blockers)
+After: PASSED (all blockers resolved)
+
+This plan must be approved before fix code is generated.
+```
+
+## Phase 4b: 🚦 HITL GATE — Developer Approves Fix Plan
+
+```
+Developer reviews the fix implementation plan (todo list) and can:
+
+1. APPROVE all fixes
+   → Proceed to code generation
+
+2. MODIFY specific fixes
+   "Use if-statement instead of optional chaining for #1"
+   → Update approach in plan
+
+3. SKIP specific fixes
+   "Skip #3, I'll refactor that myself"
+   → Remove from plan
+
+4. CANCEL
+   "Not now"
+   → Stop workflow
+
+IMPORTANT: No code changes until fix plan is approved.
+```
+
+## Phase 5: GENERATE FIXES
+
+For each approved fix in the plan:
 
 ### Read Affected File
 
@@ -335,10 +388,12 @@ If > 100 issues:
 
 ✓ Quality gate impact is clear before fixing
 ✓ Issues are categorized by fixability
+✓ Fix implementation plan (todo list) presented to developer BEFORE any code changes
+✓ Developer approves fix plan before code generation begins
 ✓ Only auto-fixable or approved issues are fixed
 ✓ Each fix is specific and tested
-✓ Developer reviews before committing
-✓ MR shows expected quality gate improvement
+✓ Developer reviews generated code before committing
+✓ MR shows expected quality gate improvement and completed fix plan
 ✓ Confidence in fix correctness is high
 
 ---

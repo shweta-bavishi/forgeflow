@@ -110,11 +110,29 @@ For test failures:
 {Description of what needs to change}
 ```
 
-## Phase 6: 🚦 HITL GATE — Developer Approves Approach
+## Phase 6: CREATE FIX IMPLEMENTATION PLAN
 
 ```
-Developer reviews diagnosis and proposed fix
-Can: approve, suggest alternative, point to relevant code, skip
+Before making any code changes, present a step-by-step fix plan:
+
+## Fix Plan for {job_name} #{build_number}
+
+### Fix Todo List
+- [ ] 1. {Specific action with file, line, before/after}
+- [ ] 2. {Next action...}
+- [ ] 3. {Verification step...}
+
+Each step: specific file, specific change, specific reason.
+This plan must be approved before any code is generated.
+```
+
+## Phase 6b: 🚦 HITL GATE — Developer Approves Fix Plan
+
+```
+Developer reviews the fix implementation plan (todo list)
+Can: approve, modify steps, suggest alternative, request investigation, skip
+
+IMPORTANT: No code changes until fix plan is approved.
 ```
 
 ## Phase 7: GENERATE FIX

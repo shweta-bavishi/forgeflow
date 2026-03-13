@@ -43,10 +43,17 @@ Call: search_in_repository for:
 Purpose: generate code that matches project style exactly
 ```
 
-## Phase 3: CREATE IMPLEMENTATION PLAN
+## Phase 3: RE-ANALYZE & CREATE IMPLEMENTATION PLAN
 
 ```
-File-by-file plan:
+STEP 1 — Re-analyze codebase (even if Jira has a plan):
+  The codebase may have changed since planning. Always verify:
+  - Read current files in affected directories
+  - Check for new patterns or conventions
+  - Identify conflicts with recently merged code
+  - Compare Jira plan (if exists) against actual codebase state
+
+STEP 2 — Generate detailed implementation plan as TODO LIST:
 
 ## Implementation Plan for {JIRA-KEY}: {title}
 
@@ -54,18 +61,24 @@ File-by-file plan:
 1. {criterion 1}
 2. {criterion 2}
 
-### Files to Create
-- src/controllers/{name}.controller.ts — HTTP endpoints
-  Pattern: follows {existing_controller} pattern
-- src/services/{name}.service.ts — Business logic
-  Pattern: follows {existing_service} pattern
-- src/dto/{name}.dto.ts — Input validation DTOs
-- src/entities/{name}.entity.ts — Data model
-- tests/{name}.service.spec.ts — Unit tests (one per acceptance criterion)
+### Implementation Todo List
+- [ ] 1. {Specific step — e.g., "Create UserEntity with TypeORM decorators"}
+       Files: src/entities/{name}.entity.ts (CREATE)
+       Pattern: follows {existing_entity} pattern
+- [ ] 2. {Specific step — e.g., "Create UserRepository with CRUD methods"}
+       Files: src/repositories/{name}.repository.ts (CREATE)
+- [ ] 3. {Specific step — e.g., "Implement UserService with validation logic"}
+       Files: src/services/{name}.service.ts (CREATE)
+- [ ] 4. {Specific step — e.g., "Create controller with REST endpoints"}
+       Files: src/controllers/{name}.controller.ts (CREATE)
+- [ ] 5. {Specific step — e.g., "Create DTOs with class-validator decorators"}
+       Files: src/dto/{name}.dto.ts (CREATE)
+- [ ] 6. {Specific step — e.g., "Register providers in AppModule"}
+       Files: src/app.module.ts (MODIFY)
+- [ ] 7. {Specific step — e.g., "Write unit tests for service"}
+       Files: tests/{name}.service.spec.ts (CREATE)
 
-### Files to Modify
-- src/app.module.ts — Register new providers
-  Change: add to imports/providers array
+Each step specifies: what to do, which files, which pattern to follow.
 
 ### Implementation Strategy
 {approach for core logic}
@@ -78,17 +91,21 @@ AC2 → test: 'should {behavior}'
 {potential issues and mitigations}
 ```
 
-## Phase 4: 🚦 HITL GATE — Developer Approves Plan
+## Phase 4: 🚦 HITL GATE — Developer Approves Implementation Plan
 
 ```
+MANDATORY: Plan must be approved BEFORE any code is written.
+
 Developer can:
   - Adjust scope ("skip compression for now")
   - Request clarification ("use S3, not local storage")
   - Point to reference code ("check document.service.ts")
   - Add requirements ("add watermark to image")
+  - Add/remove/reorder steps in the todo list
   - Approve: "Looks good, let's build it"
 
-Multi-round until developer approves
+Multi-round until developer approves the todo list.
+The approved list becomes the implementation contract.
 ```
 
 ## Phase 5: IMPLEMENT CODE
