@@ -1,0 +1,749 @@
+This CLI tool called **Forgeflow** automates the entire developer workflow — planning epics, writing dev stories, implementing stories, opening and reviewing merge requests, pipeline fixing, SonarQube fixing, checking project health reports, log analysis, and more. The CLI alreadt has **NLP support** (LLM-powered natural language interface), so users interact conversationally as well as through traditional commands. Review below mentioned changes and give me the implementation plan on how to make those changes. Do not remove any existing workflows
+
+---
+
+## 1. Architecture Overview
+
+The tool is built in three layers:
+
+### Layer 1 — Core Engine (generic, shared across all projects)
+Handles capabilities every project needs: log parsing, pattern detection, report generation, CLI interface, configuration management, NLP intent resolution, and the workflow execution engine.
+
+### Layer 2 — Integration Adapters (reusable, opt-in)
+Connectors to external systems: Outlook, Jira, GitLab, SonarQube, NexusIQ etc. These are capability modules any project can opt into. Review the current project, mcp and skills that are available, to see how they are and can be integrated
+
+### Layer 3 — Project Workflows (project-specific)
+Custom workflows that compose core features + adapters into project-specific automation. For example: "fetch today's error logs from Outlook attachments, analyze them, and give back a summary."
+
+```
+┌─────────────────────────────────────────────────┐
+│                   NLP Layer                       │
+│  ┌──────────────┐ ┌──────────┐ ┌──────────────┐  │
+│  │Intent Resolver│ │Workflow  │ │Conversation  │  │
+│  │              │ │Parser    │ │Manager       │  │
+│  └──────┬───────┘ └────┬─────┘ └──────┬───────┘  │
+└─────────┼──────────────┼──────────────┼──────────┘
+          ▼              ▼              ▼
+┌─────────────────────────────────────────────────┐
+│              Core Engine                         │
+│  ┌──────────┐ ┌──────────┐ ┌────────────────┐   │
+│  │Action    │ │Workflow  │ │Project Config  │   │
+│  │Registry  │ │Engine    │ │Manager         │   │
+│  └──────────┘ └──────────┘ └────────────────┘   │
+└──────────────────────┬──────────────────────────┘
+                       ▼
+┌─────────────────────────────────────────────────┐
+│           Adapters / Integrations                │
+│  Outlook │ Jira │ GitLab │ ...     │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## 2. Log Analysis Workflow
+
+### 2.1 Log Input Methods
+
+Support multiple ways to ingest log files, in priority order:
+
+1. **File path(s)** — primary method, supports globs and multiple files:
+   ```bash
+   devtool analyze-logs /path/to/app.log
+   devtool analyze-logs ./logs/*.log
+   devtool analyze-logs --file server.log
+   ```
+
+2. **Stdin/pipe** — for integration with `docker logs`, `kubectl logs`, CI output:
+   ```bash
+   cat server.log | devtool analyze-logs -
+   kubectl logs my-pod | devtool analyze-logs -
+   docker logs container_id 2>&1 | devtool analyze-logs -
+   ```
+
+3. **Drag and drop** — terminal emulators convert dragged files into absolute paths. This works automatically if the tool accepts file path arguments.
+
+4. **Copy-paste / paste mode** — for quick ad-hoc analysis:
+   ```bash
+   devtool analyze-logs --stdin
+   # User pastes content and hits Ctrl+D to signal EOF
+   ```
+
+5. **Directory watch** — point at a log directory and auto-pick up files.
+
+6. **Interactive fallback** — if no args passed, prompt the user to provide a path or paste content.
+
+### 2.2 Log Input Resolution Logic
+
+```typescript
+async function getLogInput(args) {
+  // 1. File path provided
+  if (args.file) return createReadStream(args.file);
+
+  // 2. Piped input
+  if (!process.stdin.isTTY) return process.stdin;
+
+  // 3. Interactive fallback
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  const filePath = await new Promise(resolve =>
+    rl.question('Enter log file path (or paste content and press Ctrl+D): ', resolve)
+  );
+  rl.close();
+  return createReadStream(filePath.trim());
+}
+```
+
+### 2.3 Log Analysis Pipeline
+
+1. **Ingest** — read and normalize the log format (JSON logs, plaintext, structured, etc.)
+2. **Parse** — extract timestamps, severity levels, error codes, stack traces
+3. **Analyze** — pattern match against known issues (OOM, connection timeouts, deadlocks, unhandled exceptions)
+4. **Summarize** — produce actionable report: root cause candidates, affected services, suggested fixes
+
+---
+
+## 3. Project Initialization (`forgeflow init`)
+
+### 3.1 Purpose
+
+The `forgeflow init` command scans a project and generates a `.forgeflow/config.yml` containing project details, coding standards, folder structure, framework detection, CI config, and integration settings. All subsequent workflows read from this config automatically — no need to re-initialize.
+
+### 3.2 Generated Config Structure
+
+```yaml
+# .forgeflow/config.yml
+project:
+  name: payment-service
+  language: TypeScript
+  framework: Next.js
+  build_tool: npm
+  team: backend-platform
+
+structure:
+  src: "source code"
+  tests: "unit and integration tests"
+  docs: "documentation"
+  # ... auto-detected folder summary
+
+coding_standards:
+  linter: eslint
+  formatter: prettier
+  rules_file: .eslintrc.js
+
+ci:
+  platform: gitlab
+  config_file: .gitlab-ci.yml
+
+log_analysis:
+  sources:
+    - type: filesystem
+      path: "./logs/"
+      glob: "*.log"
+  analyzers:
+    - stack_trace
+    - oom_detection
+    - timeout_patterns
+  output:
+    - type: console
+
+workflows:
+  - log_analysis
+  - sonar_fix
+  - pipeline_fix
+```
+
+### 3.3 Remote Project Support
+
+The init command must work for both local and remote projects. Introduce a **Workspace Provider** abstraction:
+
+```bash
+# Local (default)
+devtool init
+
+# Remote Git repo
+devtool init --source git --repo https://gitlab.com/team/payment-service.git
+
+# GitLab by project ID (API-only, no clone)
+devtool init --source gitlab --project-id 12345
+
+# GitHub
+devtool init --source github --repo org/repo-name
+```
+
+#### Workspace Abstraction Interface
+
+```typescript
+interface Workspace {
+  getTree(): Promise<FileTreeNode[]>;
+  fileExists(path: string): Promise<boolean>;
+  readFile(path: string): Promise<string>;
+  readJSON(path: string): Promise<any>;
+  isRemote(): boolean;
+  getOrigin(): string | null;
+}
+```
+
+Three implementations:
+- **LocalWorkspace** — reads from actual filesystem (default)
+- **CachedGitWorkspace** — shallow clones to `~/.devtool/cache/<project>/`, pulls on refresh
+- **VirtualAPIWorkspace** — uses platform APIs (GitLab) or mcp tools to fetch only key files (package.json, pom.xml, .eslintrc, tsconfig.json, etc.) without cloning
+
+#### Two Strategies for Remote
+
+**Strategy A — Shallow clone to cache:**
+```bash
+git clone --depth 1 --single-branch <repo> ~/.devtool/cache/<slug>
+```
+Most reliable. Scanning logic works unchanged. Refresh with `git pull --ff-only`.
+
+**Strategy B — API-only scanning (no clone):**
+Use platform APIs or mcp tools to fetch repository tree and only the key config files. Faster for large monorepos. Works well when you only need structure and config detection.
+
+#### Config Storage for Remote Projects
+
+```
+~/.devtool/
+├── global-config.yml          # global CLI settings
+├── projects/                  # config store for all initialized projects
+│   ├── payment-service/
+│   │   ├── config.yml         # same format as .devtool/config.yml
+│   │   ├── origin.yml         # where this project lives remotely
+│   │   └── cache/             # optional shallow clone
+```
+
+`origin.yml` tracks the remote source:
+```yaml
+source: gitlab
+repo: https://gitlab.com/team/payment-service.git
+project_id: 12345
+default_branch: main
+last_synced: 2026-03-15T10:30:00Z
+auth: gitlab-token-profile
+```
+
+#### Config Resolution Logic
+
+All workflows use a unified resolution function:
+```typescript
+function resolveProjectConfig(): ProjectConfig {
+  // 1. Check local folder first
+  if (existsSync(".devtool/config.yml")) return loadYaml(".devtool/config.yml");
+
+  // 2. Check if a remote project is "active"
+  const active = getActiveRemoteProject();
+  if (active) return loadYaml(`~/.devtool/projects/${active}/config.yml`);
+
+  // 3. Prompt user to init
+  throw new Error("No project context. Run 'devtool init' first.");
+}
+```
+
+### 3.4 Project Scanner
+
+The scanner is workspace-agnostic — it works identically for local and remote:
+
+```typescript
+class ProjectScanner {
+  async scan(workspace: Workspace): Promise<ProjectConfig> {
+    const structure = await workspace.getTree();
+    const framework = await this.detectFramework(workspace);
+    const standards = await this.detectCodingStandards(workspace);
+    const ciConfig = await this.detectCIPipeline(workspace);
+
+    return {
+      project: { name: this.inferName(workspace), language: framework.language, framework: framework.name, build_tool: framework.buildTool },
+      structure: this.summarizeTree(structure),
+      coding_standards: standards,
+      ci: ciConfig,
+    };
+  }
+}
+```
+
+---
+
+## 4. Generic vs Project-Specific Workflows
+
+### 4.1 Generic Workflows (Built-in)
+
+Provided out of the box. Work with zero configuration for common tasks: `log-analysis`, `sonar-fix`, `pipeline-fix`, `mr-review`, `epic-planning`, `story-implementation`, `health-check`.
+
+### 4.2 Project-Specific Config
+
+Each project's `.devtool/config.yml` declares which workflows to use and overrides their params:
+
+```yaml
+log_analysis:
+  sources:
+    - type: outlook
+      folder: "Inbox/Alerts/PaymentService"
+      filter: "subject:contains('ERROR LOG')"
+      attachment_pattern: "*.log"
+    - type: filesystem
+      path: "./logs/"
+      glob: "*.log"
+  analyzers:
+    - stack_trace
+    - oom_detection
+    - custom: ".devtool/analyzers/payment_errors.js"
+  output:
+    - type: slack
+      channel: "#payment-alerts"
+
+workflows:
+  - log_analysis
+  - sonar_fix
+  - custom: ".devtool/workflows/daily_log_review.yml"
+```
+
+### 4.3 Custom Workflow Creation — Three Authoring Modes
+
+Users can create project-specific workflows in three ways:
+
+#### Mode A: YAML-Based (No Code)
+
+For composing existing actions in a specific order without writing code:
+
+```yaml
+# .devtool/workflows/daily-log-review.yml
+name: daily-log-review
+description: "Fetch payment logs from Outlook, analyze, notify team"
+trigger:
+  - manual
+  - schedule: "0 9 * * MON-FRI"
+
+inputs:
+  severity_threshold:
+    type: string
+    default: "ERROR"
+    options: [DEBUG, INFO, WARN, ERROR, CRITICAL]
+  notify_on_clean:
+    type: boolean
+    default: false
+
+steps:
+  - name: fetch-logs
+    action: source/outlook
+    params:
+      folder: "Inbox/Alerts/PaymentService"
+      filter: "subject:contains('ERROR LOG') AND received:today"
+      extract: attachments
+      pattern: "*.log"
+
+  - name: analyze
+    action: analyze/logs
+    input: ${{ steps.fetch-logs.output }}
+    params:
+      analyzers: [stack_trace, oom_detection, timeout_patterns]
+      min_severity: ${{ inputs.severity_threshold }}
+
+  - name: check-results
+    action: condition
+    if: ${{ steps.analyze.output.has_issues OR inputs.notify_on_clean }}
+
+  - name: generate-report
+    action: report/generate
+    input: ${{ steps.analyze.output }}
+    params:
+      format: markdown
+      include_samples: true
+
+  - name: notify-slack
+    action: output/slack
+    input: ${{ steps.generate-report.output }}
+    params:
+      channel: "#payment-alerts"
+      mention: "@oncall"
+
+  - name: create-ticket
+    action: output/jira
+    if: ${{ steps.analyze.output.has_critical }}
+    params:
+      project: PAY
+      type: Bug
+      title: "Critical errors - ${{ date.today }}"
+      body: ${{ steps.generate-report.output }}
+      priority: High
+```
+
+#### Mode B: Script-Based (Full Code)
+
+For power users who need conditional logic, loops, custom transformations:
+
+```typescript
+// .devtool/workflows/daily-log-review.ts
+import { defineWorkflow } from "@devtool/sdk";
+
+export default defineWorkflow({
+  name: "daily-log-review",
+  description: "Fetch payment logs, analyze, notify team",
+
+  inputs: {
+    severityThreshold: { type: "string", default: "ERROR" },
+  },
+
+  async run(ctx) {
+    const outlookLogs = await ctx.sources.outlook.fetch({
+      folder: "Inbox/Alerts/PaymentService",
+      filter: "today",
+    });
+
+    const s3Logs = await ctx.sources.s3.fetch({
+      bucket: "prod-logs",
+      prefix: `payment-service/${ctx.date.today()}/`,
+    });
+
+    const allLogs = ctx.utils.merge(outlookLogs, s3Logs);
+    const analysis = await ctx.analyzers.run(allLogs, {
+      analyzers: ["stack_trace", "oom_detection"],
+    });
+
+    // Custom logic YAML can't express
+    const paymentFailures = allLogs.filter(
+      e => e.message.includes("PaymentGateway") && e.level === "ERROR"
+    );
+    const failureRate = paymentFailures.length / allLogs.length;
+    if (failureRate > 0.05) {
+      analysis.addCritical(`Payment failure rate at ${(failureRate * 100).toFixed(1)}% — above 5% threshold`);
+    }
+
+    if (analysis.hasCritical) {
+      await ctx.outputs.pagerduty.trigger({ service: "payment-service", severity: "critical", summary: analysis.summary });
+    }
+
+    await ctx.outputs.slack.send({ channel: "#payment-alerts", report: analysis.report });
+    return analysis;
+  },
+});
+```
+
+#### Mode C: NLP/AI-Assisted (Conversational)
+
+Users describe the workflow in natural language, and the NLP engine generates YAML or script:
+
+```bash
+devtool workflow create --prompt "every morning, check outlook for emails from monitoring@company.com, download log attachments, look for payment timeout errors, if more than 10 found create a jira ticket and alert slack"
+```
+
+### 4.4 Workflow SDK Context Object
+
+The `ctx` object provided to script-based workflows:
+
+```typescript
+interface WorkflowContext {
+  sources: {
+    outlook: OutlookSource;
+    filesystem: FileSystemSource;
+    s3: S3Source;
+    gitlab: GitLabSource;
+    [key: string]: LogSource;
+  };
+  analyzers: {
+    run(logs: LogEntry[], config?: AnalyzerConfig): Promise<AnalysisResult>;
+  };
+  outputs: {
+    slack: SlackOutput;
+    jira: JiraOutput;
+    console: ConsoleOutput;
+    pagerduty: PagerDutyOutput;
+    [key: string]: OutputTarget;
+  };
+  config: ProjectConfig;
+  utils: {
+    merge(...logs: LogEntry[][]): LogEntry[];
+    filter(logs: LogEntry[], criteria: FilterCriteria): LogEntry[];
+    template(name: string, data: any): string;
+  };
+  date: { today(): string; now(): string; daysAgo(n: number): string; };
+  workflows: { run(name: string, inputs?: Record<string, any>): Promise<any>; };
+  inputs: Record<string, any>;
+  log: Logger;
+}
+```
+
+### 4.5 Plugin Interface Contracts
+
+All sources, analyzers, and outputs implement clear interfaces:
+
+```typescript
+interface LogSource {
+  name: string;
+  fetch(): AsyncIterable<LogEntry>;
+}
+
+interface LogAnalyzer {
+  name: string;
+  analyze(entries: LogEntry[]): AnalysisResult;
+}
+
+interface OutputTarget {
+  name: string;
+  send(report: AnalysisReport): Promise<void>;
+}
+
+interface Workflow {
+  name: string;
+  description: string;
+  run(context: WorkflowContext): Promise<void>;
+}
+```
+
+---
+
+## 5. NLP-Powered Conversational Interface
+
+Since the CLI has NLP support, the entire tool is conversational.
+
+### 5.1 Intent Resolution
+
+Every user input goes through an intent resolver that maps natural language to either an existing workflow, an ad-hoc action, or a workflow creation request:
+
+```typescript
+class IntentResolver {
+  async resolve(input: string, context: ProjectContext): Promise<Intent> {
+    const systemPrompt = `
+You are a CLI assistant for a dev automation tool.
+
+Current project: ${context.config.project.name}
+Available workflows: ${context.workflows.list().map(w => `${w.name}: ${w.description}`).join("\n")}
+Available actions: ${context.actions.list().join(", ")}
+Recent commands: ${context.history.recent(5).join("\n")}
+
+Determine the user's intent. Respond with JSON:
+{
+  "type": "run_workflow | run_action | create_workflow | question | ambiguous",
+  "workflow": "name if applicable",
+  "actions": ["action/name"] if ad-hoc,
+  "params": { extracted parameters },
+  "clarifications": ["questions if ambiguous"],
+  "confidence": 0.0 to 1.0
+}`;
+
+    const intent = await this.llm.complete({ system: systemPrompt, user: input });
+    if (intent.confidence < 0.7) return { type: "clarify", questions: intent.clarifications };
+    return intent;
+  }
+}
+```
+
+### 5.2 Conversational Workflow Creation
+
+```
+$ devtool workflow create
+
+🤖 Describe your workflow in plain language:
+> Every morning check outlook for emails from monitoring@company.com 
+  with log attachments. Analyze for payment timeout errors. 
+  If more than 10 critical, create jira ticket and alert slack #payment-alerts.
+
+🤖 Here's what I understood:
+   Trigger:    Schedule — daily at 9:00 AM
+   Source:     Outlook (from: monitoring@company.com, attachments: *.log)
+   Analyze:    Pattern match — "payment timeout"
+   Condition:  Critical errors > 10
+   Actions:    Create Jira ticket + Slack alert (#payment-alerts)
+
+? Does this look right? (Y/n/edit)
+```
+
+### 5.3 NLP Workflow Parser
+
+```typescript
+class NLPWorkflowParser {
+  async parse(userDescription: string): Promise<WorkflowIR> {
+    const systemPrompt = `
+You are a workflow parser for a developer CLI tool.
+
+Available sources: ${this.registry.listSources().join(", ")}
+Available analyzers: ${this.registry.listAnalyzers().join(", ")}
+Available outputs: ${this.registry.listOutputs().join(", ")}
+Available actions: ${this.registry.listActions().join(", ")}
+
+Project context:
+${JSON.stringify(this.projectConfig, null, 2)}
+
+Parse the user's description into this JSON structure:
+{
+  "name": "suggested-name",
+  "description": "one line summary",
+  "trigger": { "type": "manual|schedule|event", "schedule?": "cron" },
+  "inputs": [{ "name": "", "type": "", "default": "" }],
+  "steps": [{ "name": "", "action": "category/action", "params": {}, "condition": null, "input_from": null }],
+  "clarifications": [],
+  "missing_setup": []
+}
+
+Rules:
+- Only use actions from the available list
+- Infer defaults from project context
+- Add ambiguities to "clarifications" array
+- Add unconfigured integrations to "missing_setup" array`;
+
+    const response = await this.llm.complete({ system: systemPrompt, user: userDescription, responseFormat: "json" });
+    return this.validateIR(response);
+  }
+}
+```
+
+### 5.4 Conversational Workflow Editing
+
+Users modify existing workflows with natural language:
+
+```
+$ devtool workflow edit morning-payment-check
+🤖 What would you like to change?
+> also check for database connection errors and change the schedule to twice a day
+
+🤖 Changes:
+   1. Add analyzer: database connection patterns
+   2. Update schedule: "0 9,17 * * MON-FRI" (9 AM and 5 PM, weekdays)
+? Apply? (Y/n/edit)
+```
+
+### 5.5 Multi-Turn Context Chaining
+
+The NLP layer maintains session context so follow-up commands understand what came before:
+
+```
+> analyze logs for user-auth-service
+🤖 ✔ Analyzed 8,241 entries — 5 CRITICAL: JWT token validation failures
+
+> what's causing those JWT failures
+🤖 All 5 share pattern: timestamp 03:12-03:15 AM, "token signature mismatch", upstream: identity-provider-service
+
+> check if there's a related deployment around that time
+🤖 ✔ Found deployment at 03:10 AM — "rotate JWT signing keys"
+
+> create a ticket for the fix
+🤖 ✔ Created AUTH-392: "Implement automatic JWKS key rotation polling"
+```
+
+Implemented via a ConversationManager that tracks history and structured session data:
+
+```typescript
+class ConversationManager {
+  private history: ConversationTurn[] = [];
+  private sessionContext: Record<string, any> = {};
+
+  async process(userInput: string): Promise<Response> {
+    const contextSummary = this.buildContextWindow();
+    const intent = await this.intentResolver.resolve(userInput, {
+      ...this.projectContext,
+      conversationHistory: contextSummary,
+      sessionData: this.sessionContext,
+    });
+    const result = await this.executeIntent(intent);
+
+    this.history.push({ role: "user", content: userInput });
+    this.history.push({ role: "assistant", content: result.summary });
+    if (result.data) this.sessionContext[result.dataKey] = result.data;
+
+    return result;
+  }
+}
+```
+
+---
+
+## 6. Workflow Execution Engine
+
+### 6.1 Resolution Flow
+
+```
+devtool workflow run <name>
+    │
+    ├── Search: .devtool/workflows/*.yml → .devtool/workflows/*.ts → built-in
+    ├── Detect type: YAML → YAML engine, TS/JS → script runner
+    ├── Validate: actions exist, inputs provided, integrations configured
+    ├── Build context: load config, init sources/outputs, resolve inputs
+    └── Execute steps sequentially with output passing and condition evaluation
+```
+
+### 6.2 YAML Workflow Engine
+
+```typescript
+class YAMLWorkflowEngine {
+  async execute(workflow: YAMLWorkflow, ctx: WorkflowContext) {
+    const stepOutputs: Record<string, any> = {};
+
+    for (const step of workflow.steps) {
+      if (step.if && !this.evaluate(step.if, { steps: stepOutputs, inputs: ctx.inputs })) {
+        ctx.log.info(`Skipping: ${step.name} (condition not met)`);
+        continue;
+      }
+      const action = this.actionRegistry.get(step.action);
+      if (!action) throw new Error(`Unknown action: ${step.action}`);
+      const resolvedParams = this.resolveTemplates(step.params, { steps: stepOutputs, inputs: ctx.inputs, date: ctx.date });
+      const input = step.input ? this.resolveTemplates(step.input, { steps: stepOutputs }) : undefined;
+      ctx.log.info(`Running: ${step.name}`);
+      stepOutputs[step.name] = await action.run(resolvedParams, input, ctx);
+    }
+    return stepOutputs;
+  }
+}
+```
+
+---
+
+## 7. CLI Commands Summary
+
+```bash
+# Project initialization
+devtool init                                          # local project
+devtool init --source git --repo <url>                # remote via git
+devtool init --source gitlab --project-id <id>        # remote via API
+
+# Log analysis
+devtool analyze-logs <file|glob>                      # file input
+devtool analyze-logs -                                # stdin/pipe
+devtool analyze-logs --stdin                           # paste mode
+
+# Workflow management
+devtool workflow list                                  # list all (built-in + custom)
+devtool workflow create                                # interactive scaffold
+devtool workflow create --prompt "<description>"       # AI-assisted
+devtool workflow run <name>                            # run a workflow
+devtool workflow run <name> --input key=value          # with overrides
+devtool workflow run <name> --dry-run                  # preview only
+devtool workflow edit <name>                           # conversational edit
+devtool workflow validate <file>                       # validate definition
+devtool workflow share <name>                          # commit to repo
+devtool workflow import --from <url>                   # import shared workflow
+
+# Plugin management
+devtool plugin add <adapter>                           # install integration
+devtool plugin list                                    # list installed
+devtool plugin remove <adapter>                        # uninstall
+
+# Conversational mode
+devtool                                                # enter NLP interactive mode
+```
+
+---
+
+## 8. Key Design Principles
+
+1. **Generic workflows work with zero configuration.** `devtool analyze-logs ./app.log` should just work. Config only enhances.
+2. **Project-specific workflows compose generic pieces.** Never rewrite core logic — wire together existing sources, analyzers, and outputs.
+3. **Adapters are opt-in, not bundled.** Keep core light. Lazy-load or install via `devtool plugin add`.
+4. **Convention over configuration.** Auto-detect `.devtool/` folder, auto-register workflows from `workflows/` subfolder.
+5. **Workspace-agnostic.** All scanning and workflow logic operates on the `Workspace` interface, never assumes local filesystem.
+6. **NLP is the interface, not the brain.** NLP translates human language into the same structured definitions that YAML and scripts use. Everything underneath stays the same.
+7. **Multi-turn context.** The conversation manager maintains session state so follow-up commands understand prior context without re-explaining.
+8. **Three-tier customization.** YAML workflows for no-code composition (80% of cases), script workflows for full control, AI-assisted generation as a starting point.
+
+---
+
+## 9. Implementation Priority
+
+1. Core engine: action registry, workflow engine, config manager
+2. `forgeflow init` with local workspace support
+3. Built-in generic workflows (log-analysis, sonar-fix, pipeline-fix)
+4. Log analysis pipeline (ingest → parse → analyze → summarize)
+5. YAML workflow authoring and execution
+6. NLP intent resolver and conversational mode
+7. Remote workspace providers (git clone, API-based)
+8. Script-based workflow SDK (`defineWorkflow`)
+9. NLP workflow creation and editing
+10. Integration adapters (Outlook, Slack, Jira, GitLab, etc.)
+11. Multi-turn conversation context chaining
+12. Plugin management system
