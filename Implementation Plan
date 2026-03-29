@@ -1,0 +1,816 @@
+# AI-Powered Trade Search Application — Architecture Design
+
+## 1. Problem Statement
+
+Build a chat-driven trade search application where users enter **natural language queries** (e.g., *"Show me all FX trades above $1M from last week"*) which are translated by an LLM agent into structured queries, executed against a trade server, and results displayed in an AG Grid.
+
+### Key Constraints
+
+| Constraint | Detail |
+|------------|--------|
+| **Hosting** | Application runs inside an **Electron window** alongside multiple blotters |
+| **Authentication** | **TEA token** based auth on Electron window launch |
+| **LLM Provider** | **AWS Bedrock** APIs (Copilot access also available) |
+| **Data Sensitivity** | Trade data is **sensitive** — LLM must NEVER see actual trade data, only schema/metadata |
+| **AG Grid** | Enterprise license available; **SSRM not yet used** but can be adopted |
+| **Server API** | Structure TBD — using placeholder format for now |
+
+---
+
+## 2. Proposed UI Layout
+
+![UI Mockup](/Users/shweta/.gemini/antigravity/brain/2e670bca-cdcf-4fa4-aa49-99ac7797474a/trade_search_ui_1774708977745.png)
+
+### Layout Structure
+
+| Zone | Width | Description |
+|------|-------|-------------|
+| **Chat Panel** (Left) | ~30% | Conversation history + input box |
+| **Results Panel** (Right) | ~70% | Filter chips toolbar + AG Grid + pagination |
+
+### Chat Panel Details
+- **Header**: "Trade Search Assistant" branding with status indicator
+- **Message List**: Scrollable conversation history with user bubbles (right-aligned) and AI bubbles (left-aligned)
+- **Input Area**: Text input with Send button, optional voice-to-text mic icon
+- **Suggested Queries**: Clickable template chips for common searches (e.g., *"Recent FX trades"*, *"Open positions"*)
+
+### Results Panel Details
+- **Active Filters Bar**: Removable chips showing currently applied criteria (e.g., `Asset: FX ×`, `Amount > $1M ×`). Removing a chip re-triggers the query
+- **AG Grid**: Full-featured data grid showing trade results with sort, filter, column resize, and export capabilities
+- **Status Bar**: Row count, pagination, and a "Refine Search" prompt
+
+### Electron Window Integration
+- The chat + grid panel lives as a **new blotter tab** within the existing Electron shell
+- Shares the same TEA token auth context as other blotters
+- Can communicate with other blotters via Electron IPC if needed (e.g., clicking a trade opens it in the trade detail blotter)
+- Chat panel can be collapsed/resized via a splitter handle
+
+---
+
+## 3. AG Grid Analysis — Is It Suitable?
+
+### Verdict: **Yes, AG Grid is an excellent fit** ✅
+
+AG Grid is already in use and is one of the strongest data grid libraries for this use case. Here's the analysis:
+
+### ✅ Strengths for This Application
+
+| Feature | Benefit |
+|---------|---------|
+| **AG Grid AI Toolkit** (v34.3+, Enterprise) | Native support for NL → grid state translation via `getStructuredSchema()` and `setState()` APIs |
+| **Server-Side Row Model (SSRM)** | Lazy-loads data from server; ideal for large trade datasets (millions of rows) |
+| **Dynamic Column Definitions** | Columns can be set/changed at runtime via `setGridOption('columnDefs', newDefs)` — useful when AI returns different result shapes |
+| **Built-in Filtering/Sorting** | Column filters, quick filters, and advanced filter support reduce custom work |
+| **Excel/CSV Export** | Already used in your codebase; traders expect export functionality |
+| **Cell Renderers** | Custom formatting for prices, currencies, status badges, PnL coloring (red/green) |
+| **Row Grouping & Aggregation** | Traders can group by counterparty, asset class, etc. with drill-down |
+| **Column State Persistence** | Save/restore user column preferences between sessions |
+
+### ⚠️ Considerations
+
+| Concern | Mitigation |
+|---------|------------|
+| Enterprise license ✅ | Confirmed available |
+| **SSRM not currently used** | Can be adopted for this feature — ideal for lazy-loading large trade result sets. Recommend adopting SSRM specifically for this blotter |
+| AI Toolkit only controls grid state (filter/sort/group) — it does NOT fetch new data from server | Your architecture must still handle the query→server→data pipeline separately |
+| Dynamic columns from AI responses need careful schema mapping | Define a canonical set of trade columns; let AI toggle visibility |
+
+### AG Grid AI Toolkit — How It Works
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant ChatUI
+    participant LLM
+    participant AGGrid
+    participant Server
+
+    User->>ChatUI: "Show FX trades > $1M"
+    ChatUI->>AGGrid: gridApi.getStructuredSchema()
+    AGGrid-->>ChatUI: Grid schema (filters, sorts, columns)
+    ChatUI->>LLM: User query + grid schema + current state
+    LLM-->>ChatUI: New grid state JSON
+    ChatUI->>AGGrid: gridApi.setState(newState)
+    AGGrid->>Server: SSRM data request with new filters/sorts
+    Server-->>AGGrid: Trade data rows
+    AGGrid-->>User: Rendered results
+```
+
+> [!IMPORTANT]
+> **Two distinct approaches exist** — the AG Grid AI Toolkit approach (above) manipulates grid filters/sort and then SSRM fetches data, versus a **Custom NL-to-Query** approach where the LLM generates a server query directly. See Section 5 for comparison.
+
+---
+
+## 4. System Architecture
+
+### High-Level Architecture
+
+```mermaid
+graph TB
+    subgraph Electron["Electron Shell"]
+        subgraph Frontend["Trade Search Blotter (React)"]
+            ChatUI["Chat Interface"]
+            QueryParser["Query Parser / LLM Client"]
+            FilterChips["Active Filters Display"]
+            Grid["AG Grid (SSRM)"]
+        end
+        TEA["TEA Token Auth"]
+    end
+
+    subgraph AI_Layer["AI Layer (Backend Proxy)"]
+        Proxy["LLM Proxy Service"]
+        PromptEngine["Prompt Template Engine"]
+        SchemaProvider["Trade Schema Provider"]
+        Bedrock["AWS Bedrock<br/>(Claude 3.5 Sonnet)"]
+    end
+
+    subgraph Backend["Backend Server"]
+        WS["WebSocket API"]
+        QueryEngine["Query Engine"]
+        TradeDB["Trade Database"]
+    end
+
+    ChatUI -->|User NL input| QueryParser
+    QueryParser -->|NL + schema context| Proxy
+    Proxy -->|TEA token validated| PromptEngine
+    PromptEngine -->|Structured prompt<br/>schema only, NO trade data| Bedrock
+    Bedrock -->|Structured query JSON| Proxy
+    Proxy -->|Query JSON| QueryParser
+    QueryParser -->|Update filters| FilterChips
+    QueryParser -->|Apply state or send query| Grid
+    Grid -->|Data request + TEA token| WS
+    WS --> QueryEngine
+    QueryEngine --> TradeDB
+    TradeDB --> QueryEngine
+    QueryEngine --> WS
+    WS --> Grid
+    SchemaProvider -->|Trade field definitions| PromptEngine
+    TEA -.->|Auth context| Proxy
+    TEA -.->|Auth context| WS
+```
+
+> [!CAUTION]
+> **Data Sensitivity Boundary**: The red line is between the LLM and trade data. The LLM (Bedrock) receives ONLY the trade schema, field definitions, and the user's natural language query. It NEVER sees actual trade records, counterparty names, amounts, or any PII.
+
+### Technology Stack Recommendation
+
+| Layer | Technology | Rationale |
+|-------|-----------|-----------|
+| Host Environment | **Electron** (existing) | App already runs in Electron with multiple blotters |
+| Frontend Framework | **React** (existing stack) | Already in use; component reuse |
+| Chat UI | **Custom React component** or `@chatscope/chat-ui-kit-react` | Lightweight, customizable |
+| Data Grid | **AG Grid Enterprise** with **SSRM** (new for this blotter) | Lazy-loading for large trade datasets; AI Toolkit |
+| LLM Provider | **AWS Bedrock** (Claude 3.5 Sonnet / Claude Haiku) | Already provisioned; data stays in AWS; compliant |
+| LLM Proxy | **Backend proxy service** | Secures Bedrock credentials; adds logging/rate limiting |
+| Auth | **TEA Token** | Existing auth; passed through to both LLM proxy and trade WebSocket |
+| State Management | **React Query / TanStack Query** + **Zustand** for chat | Likely already in use |
+| WebSocket | **Existing WebSocket infrastructure** | Reuse current trade search WS connection |
+
+---
+
+## 5. Architecture Approach — Two Options
+
+> [!IMPORTANT]
+> This is a key decision point requiring discussion.
+
+### Option A: AG Grid AI Toolkit Approach
+
+The LLM translates NL → **AG Grid state** (filters, sort, column visibility). The grid's SSRM then uses its existing server-side data source to fetch filtered data.
+
+```
+User NL → LLM → Grid State JSON → gridApi.setState() → SSRM fetches data → Display
+```
+
+| Pros | Cons |
+|------|------|
+| Native AG Grid support; less custom code | Requires AG Grid Enterprise license with AI Toolkit |
+| Grid schema auto-generated via `getStructuredSchema()` | **Limited to what AG Grid filters can express** — complex joins, aggregations, or cross-entity queries may not be possible |
+| Filter state is bidirectional — users can also use grid filters and the state stays in sync | LLM must understand AG Grid's state schema, not your trade domain |
+| Existing SSRM infrastructure is reused directly | Adding new query capabilities means adding new column definitions |
+
+### Option B: Custom NL-to-Query Approach
+
+The LLM translates NL → **custom structured query JSON** (or your existing WebSocket query format). This query is sent to the server, and results populate the grid.
+
+```
+User NL → LLM → Custom Query JSON → WebSocket/REST → Server processes → Results → AG Grid
+```
+
+| Pros | Cons |
+|------|------|
+| **Full control** over query expressiveness — supports complex queries, joins, aggregations | More custom code to build and maintain |
+| LLM is trained on your trade domain, not AG Grid internals | Must build and maintain the NL→query translation layer |
+| Can express queries that go beyond grid filter capabilities | Filter chips must be manually synced with the generated query |
+| Works with any grid library (not locked to AG Grid Enterprise) | Need robust validation/sanitization of LLM-generated queries |
+| Can evolve independently of AG Grid versions | |
+
+### 🏆 Recommendation
+
+**Use a hybrid approach:**
+1. Use **Option B (Custom NL-to-Query)** as the primary pipeline — the LLM generates a structured query that maps to your existing WebSocket query format
+2. Use **AG Grid AI Toolkit** as a secondary, complementary feature — for post-result refinement like *"Now sort by amount descending"* or *"Group these by counterparty"*
+
+This gives you full query power while still leveraging AG Grid's native NL capabilities for grid manipulation.
+
+---
+
+## 6. LLM Model Recommendations (AWS Bedrock)
+
+Since **AWS Bedrock** is the provisioned provider, model selection is scoped to Bedrock-available models. This is advantageous for data compliance — all inference stays within your AWS region.
+
+### Models Available on Bedrock — Ranked for Structured Query Generation
+
+| Rank | Model | Strengths | Best For | Bedrock Pricing |
+|------|-------|-----------|----------|----------------|
+| 1 | **Claude 3.5 Sonnet** | Excellent reasoning, best-in-class instruction following, strong structured JSON output, great with financial domain jargon | Primary model for query translation | ~$3 / 1M input, ~$15 / 1M output |
+| 2 | **Claude 3 Haiku** | Extremely fast (~200ms), very low cost, good for simpler queries | Fast-path for simple queries; fallback cost savings | ~$0.25 / 1M input, ~$1.25 / 1M output |
+| 3 | **Claude 3.5 Haiku** | Balanced speed + accuracy, stronger than Haiku but cheaper than Sonnet | Sweet spot if Sonnet is too expensive at scale | ~$1 / 1M input, ~$5 / 1M output |
+| 4 | **Amazon Titan Text** | Native AWS model, lowest latency within Bedrock, no third-party data concerns | If strict no-third-party-model policy exists | AWS-native pricing |
+| 5 | **Llama 3.1 70B** (on Bedrock) | Open-weight, strong general performance | If you want to avoid Anthropic/proprietary lock-in | ~$2.70 / 1M tokens |
+
+### 🏆 Recommended Strategy: Tiered Model Routing
+
+```mermaid
+flowchart LR
+    A[User Query] --> B{Query Complexity?}
+    B -->|Simple<br/>e.g. 'Show FX trades'| C[Claude 3 Haiku<br/>Fast + Cheap]
+    B -->|Medium/Complex<br/>e.g. 'Group by counterparty<br/>where notional > 5M'| D[Claude 3.5 Sonnet<br/>High Accuracy]
+    C --> E{Valid JSON?}
+    D --> E
+    E -->|No| F[Retry with<br/>Claude 3.5 Sonnet]
+    E -->|Yes| G[Send to Server]
+```
+
+> [!TIP]
+> **Start with Claude 3.5 Sonnet for all queries** in Phase 1 (simplicity). In Phase 2, add complexity classification and route simple queries to Haiku for cost savings. A simple heuristic: queries under 15 words with no aggregation keywords → Haiku; everything else → Sonnet.
+
+### Why Claude on Bedrock is Ideal Here
+
+- **Data stays in your AWS region** — no data leaves your cloud boundary
+- **Bedrock handles auth/scaling** — no API key management; uses IAM roles
+- **Structured output support** — Claude excels at JSON Schema constrained output
+- **Financial jargon** — Claude is strong with domain-specific terminology (notional, ISIN, counterparty, FX swap, etc.)
+- **Already provisioned** — no procurement/compliance overhead
+
+---
+
+## 7. Prompt Engineering — Criteria & Design
+
+### System Prompt Structure
+
+The prompt should contain these sections:
+
+#### 1. Role Definition
+```
+You are a trade search query translator for a financial trading platform.
+Your job is to convert natural language trade search requests into structured
+JSON queries that can be executed against our trade database.
+```
+
+#### 2. Trade Schema Definition
+```
+Available trade fields:
+- trade_id (string): Unique trade identifier, format "T-XXXXX"
+- counterparty (string): Trading counterparty name (e.g., "JP Morgan", "HSBC")
+- asset_class (enum): One of ["FX", "EQ", "FI", "COMM", "DERIV"]
+- direction (enum): "BUY" or "SELL"
+- notional_amount (number): Trade notional value
+- currency (string): ISO 4217 currency code (e.g., "USD", "EUR", "GBP")
+- trade_date (date): Trade execution date, format "YYYY-MM-DD"
+- settlement_date (date): Expected settlement date
+- status (enum): One of ["PENDING", "SETTLED", "CANCELLED", "FAILED"]
+- trader (string): Name of the trader
+- book (string): Trading book identifier
+- portfolio (string): Portfolio name
+```
+
+#### 3. Output Format Specification
+```json
+{
+  "filters": [
+    {
+      "field": "asset_class",
+      "operator": "eq",
+      "value": "FX"
+    },
+    {
+      "field": "notional_amount",
+      "operator": "gt",
+      "value": 1000000
+    }
+  ],
+  "sort": [
+    { "field": "trade_date", "direction": "desc" }
+  ],
+  "date_range": {
+    "field": "trade_date",
+    "from": "2026-03-21",
+    "to": "2026-03-28"
+  },
+  "pagination": {
+    "page": 1,
+    "page_size": 25
+  }
+}
+```
+
+#### 4. Operator Definitions
+```
+Supported operators: eq, neq, gt, gte, lt, lte, in, not_in, contains,
+starts_with, between, is_null, is_not_null
+```
+
+#### 5. Business Rules & Edge Cases
+```
+Rules:
+- "Last week" means the 7 days prior to today (today is {current_date})
+- "Large trades" means notional_amount > 10,000,000
+- "Recent" means within the last 24 hours
+- If no date range specified, default to last 30 days
+- If the user's query is ambiguous, return the query with your best guess
+  AND set "clarification_needed": true with a suggested clarification question
+- Always include pagination with default page_size of 25
+- Currency amounts should be normalized (e.g., "1M" = 1000000, "5K" = 5000)
+```
+
+#### 6. Conversation Context
+```
+Previous queries in this session:
+{conversation_history}
+
+The user may refer to previous results (e.g., "now filter those by EUR only").
+In such cases, ADD to the existing filters rather than replacing them.
+```
+
+#### 7. Safety & Validation
+```
+NEVER generate queries that:
+- Delete, modify, or insert data
+- Access tables outside the trade schema
+- Include SQL or code — output only the structured JSON format above
+- Expose sensitive PII beyond what's in the trade schema
+```
+
+#### 8. Data Sensitivity Guardrail
+```
+CRITICAL: You will NEVER receive actual trade data. You only receive:
+- The trade schema (field names, types, and allowed enum values)
+- The user's natural language query
+- Previous query history (structured JSON, NOT actual trade records)
+
+You must NEVER:
+- Ask the user to paste trade data into the chat
+- Reference specific trade IDs, counterparty names, or amounts in your responses
+- Attempt to infer or guess actual trade values
+- Store or recall any data from previous sessions
+```
+
+### Key Prompt Criteria Checklist
+
+- [ ] **Role**: Clear financial domain expert role
+- [ ] **Schema**: Complete field definitions with types and enums
+- [ ] **Output format**: Strict JSON schema with examples
+- [ ] **Operators**: Full list of supported filter operators
+- [ ] **Date handling**: How to interpret relative dates ("last week", "yesterday")
+- [ ] **Defaults**: Default sort, pagination, and date range
+- [ ] **Ambiguity**: How to handle unclear queries
+- [ ] **Conversation context**: Multi-turn support
+- [ ] **Business jargon**: Domain-specific term glossary
+- [ ] **Safety rails**: What NOT to generate
+
+---
+
+## 8. MCP Server vs WebSocket — Communication Layer
+
+> [!IMPORTANT]
+> This is a critical architectural decision.
+
+### Current State
+You currently send WebSocket requests based on form values the user selects. The question is whether the server side should expose an **MCP Server** for the LLM to call, or whether the existing WebSocket approach should be reused.
+
+### Option 1: Keep Existing WebSocket (Recommended for Phase 1)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Electron
+    participant Proxy as LLM Proxy (Backend)
+    participant Bedrock as AWS Bedrock
+    participant WS as WebSocket Server
+
+    User->>Electron: NL query
+    Electron->>Proxy: NL query + TEA token
+    Proxy->>Bedrock: Schema + NL query (NO trade data)
+    Bedrock-->>Proxy: Query JSON
+    Proxy-->>Electron: Validated query JSON
+    Electron->>WS: Send query + TEA token
+    WS-->>Electron: Trade results
+    Electron->>Electron: Populate AG Grid
+```
+
+| Pros | Cons |
+|------|------|
+| **Zero server-side changes** — reuse existing WebSocket query format | LLM doesn't interact with server directly; frontend is the orchestrator |
+| Fast to implement; LLM produces the same JSON your forms currently produce | Frontend must validate/sanitize LLM output before sending to server |
+| Existing TEA token auth, rate limiting, and error handling work as-is | Cannot leverage MCP's tool discovery for future AI capabilities |
+| **Trade data never touches the LLM** — only the generated query does | |
+| Lower complexity; easier to debug | |
+
+### Option 2: MCP Server (Better for Long-Term AI Integration)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant LLM as LLM Agent
+    participant MCP as MCP Server
+    participant DB as Trade DB
+
+    User->>Frontend: NL query
+    Frontend->>LLM: User query + MCP tool descriptions
+    LLM->>MCP: Tool call: search_trades({filters})
+    MCP->>DB: Execute query
+    DB-->>MCP: Results
+    MCP-->>LLM: Formatted results
+    LLM-->>Frontend: Results + summary
+    Frontend->>Frontend: Populate AG Grid
+```
+
+| Pros | Cons |
+|------|------|
+| **Standardized protocol** — any MCP-compatible LLM can discover and use your trade search tools | **Requires server-side changes** — must build an MCP server exposing trade search, trade detail, aggregation tools etc. |
+| Self-describing — the LLM discovers available tools and their schemas automatically | More complex architecture to maintain |
+| Future-proof — can add new tools (position lookup, risk calc) without frontend changes | MCP is still relatively new; ecosystem is maturing |
+| Supports multi-step agentic workflows (search → analyze → alert) | Adds new infrastructure component (MCP server process) |
+| Better separation of concerns — LLM talks to server directly | Authentication & authorization must be handled in MCP layer |
+
+### 🏆 Recommendation
+
+**Phase 1: Reuse WebSocket** — Get the feature working by having the LLM produce the same query format your forms generate today. Zero server changes needed.
+
+**Phase 2: Introduce MCP Server** — Once the concept is proven, build an MCP server on top of your existing query engine. This enables richer agentic capabilities like:
+- `search_trades` — search with filters
+- `get_trade_details` — fetch a single trade
+- `get_portfolio_summary` — aggregated view
+- `get_counterparty_exposure` — risk-related queries
+
+---
+
+## 9. Server-Side Requirements
+
+### Minimum Requirements (Phase 1 — WebSocket Reuse)
+
+Since the LLM output will mirror your existing form-based query format, server-side changes are minimal:
+
+| Requirement | Details |
+|-------------|---------|
+| **No changes to query API** | LLM generates the same JSON format your forms produce |
+| **Robust input validation** | Tighten server-side validation — LLM may generate edge-case values that forms never would (e.g., extremely large date ranges, unusual operator combinations) |
+| **Rate limiting** | AI-driven searches may increase query volume; ensure rate limits are appropriate |
+| **Query logging** | Log which queries came from AI vs. manual form to track accuracy and performance |
+| **Error messages** | Return structured, descriptive error messages (the LLM may need to retry or explain the error to the user) |
+
+### New Backend Requirement: LLM Proxy Service
+
+A lightweight backend proxy is needed to securely call AWS Bedrock:
+
+| Requirement | Details |
+|-------------|---------|
+| **Endpoint** | `POST /api/ai/translate-query` — accepts NL query, returns structured JSON |
+| **Auth** | Validates incoming TEA token before processing |
+| **Bedrock Integration** | Uses AWS SDK to call `InvokeModel` on Bedrock (Claude) |
+| **Prompt Management** | Stores and versions system prompts server-side (not in frontend) |
+| **Input Sanitization** | Strips any potentially injected data from user input |
+| **Response Validation** | Validates LLM output against expected JSON schema before returning to frontend |
+| **Audit Logging** | Logs every query: user ID, NL input, generated query, model used, latency |
+| **Rate Limiting** | Per-user rate limiting to prevent abuse (e.g., 30 queries/minute) |
+
+### API Structure Placeholder
+
+> [!NOTE]
+> Server-side API structure will be provided later. The following is a placeholder to define the contract between the LLM proxy and the frontend.
+
+**Request** (`POST /api/ai/translate-query`):
+```json
+{
+  "user_query": "Show me all FX trades above $1M from last week",
+  "conversation_context": [
+    { "role": "user", "content": "previous query text" },
+    { "role": "assistant", "query": { /* previous generated query */ } }
+  ]
+}
+```
+**Headers**: `Authorization: Bearer <TEA_TOKEN>`
+
+**Response**:
+```json
+{
+  "success": true,
+  "generated_query": {
+    "filters": [...],
+    "sort": [...],
+    "date_range": {...},
+    "pagination": {...}
+  },
+  "display_message": "Searching for FX trades above $1M from the last 7 days...",
+  "clarification_needed": false,
+  "clarification_question": null
+}
+```
+
+This `generated_query` is then sent via the **existing WebSocket** to the trade server using the same format the form-based search currently uses.
+
+### Full Requirements (Phase 2 — MCP Server)
+
+If/when you introduce an MCP server, the server team needs to provide:
+
+| Requirement | Details |
+|-------------|---------|
+| **MCP Server Process** | A new server process (Node.js, Python, or Java) implementing MCP protocol (JSON-RPC 2.0 over HTTP/SSE) |
+| **Tool Definitions** | JSON Schema definitions for each tool: `search_trades`, `get_trade_details`, `get_aggregations`, etc. |
+| **Authentication** | MCP server must authenticate TEA tokens |
+| **Query Sandboxing** | Read-only access; no mutations. Queries should be parameterized to prevent injection |
+| **Response Format** | Standardized JSON response: `{ total_count, page, page_size, trades: [...] }` |
+| **Schema Endpoint** | Returns the current trade schema (field names, types, enums) for LLM prompt injection |
+| **Pagination Support** | Server-side pagination (offset/limit or cursor-based) for large result sets |
+| **Aggregation Support** | Ability to return grouped/aggregated results (e.g., *"Total notional by counterparty"*) |
+| **Performance** | Query response time < 500ms for standard searches; < 2s for complex aggregations |
+
+---
+
+## 10. Detailed Data Flow
+
+### Master Flow — Query Lifecycle
+
+```mermaid
+flowchart TD
+    A[User types NL query in chat<br/>within Electron blotter] --> B{Classify intent}
+    
+    B -->|"🔍 New Search<br/>e.g., 'Show FX trades > $1M'"| C[Frontend sends NL query<br/>to Backend LLM Proxy]
+    B -->|"⚙️ Grid Manipulation<br/>e.g., 'Sort by date desc'"| D[AG Grid AI Toolkit path]
+    B -->|"💬 Non-search<br/>e.g., 'What can you do?'"| E[Handle as chat-only<br/>response — no query generated]
+    
+    %% New Search Path
+    C --> F[LLM Proxy validates TEA token]
+    F -->|Invalid| F1[Return 401 — show<br/>re-auth prompt in chat]
+    F -->|Valid| G[Proxy builds prompt:<br/>system prompt + trade schema<br/>+ NL query + conversation context]
+    G --> H[Call AWS Bedrock<br/>Claude 3.5 Sonnet]
+    
+    H --> I[Bedrock returns<br/>structured query JSON]
+    I --> J{Proxy validates response}
+    
+    J -->|"❌ Invalid JSON"| K[Retry once with<br/>stricter prompt + error context]
+    K --> H
+    
+    J -->|"❌ Retry also failed"| L[Return error to frontend<br/>'Could not understand.<br/>Try rephrasing.']
+    
+    J -->|"⚠️ Clarification needed"| M[Return clarification question<br/>to frontend]
+    M --> M1[Show question in chat bubble<br/>e.g., 'Did you mean FX Spot or FX Swap?']
+    M1 --> A
+    
+    J -->|"✅ Valid"| N[Proxy logs: user ID, query,<br/>generated JSON, model, latency]
+    N --> O[Return validated query JSON<br/>+ display message to frontend]
+    
+    O --> P[Frontend extracts<br/>filter chips from JSON]
+    P --> Q[Frontend sends query<br/>via WebSocket + TEA token]
+    Q --> R[Trade server executes query<br/>and returns results]
+    R --> S[AG Grid SSRM populates<br/>with trade data]
+    S --> T[Chat shows:<br/>'Found N trades matching<br/>your criteria']
+    
+    %% Grid Manipulation Path
+    D --> D1["gridApi.getStructuredSchema()"]
+    D1 --> D2[Send schema + NL command<br/>to Bedrock via proxy]
+    D2 --> D3[Bedrock returns<br/>new grid state JSON]
+    D3 --> D4["gridApi.setState(newState)"]
+    D4 --> D5[SSRM re-fetches<br/>with new filters/sort]
+    D5 --> S
+```
+
+### Step-by-Step Walkthrough
+
+#### Flow 1: New Search (Primary Path)
+
+| Step | Component | Action | Data Transferred |
+|------|-----------|--------|-----------------|
+| 1 | **Chat UI** (Electron) | User types: *"Show me all FX trades above $1M from last week"* | User's NL text |
+| 2 | **Frontend** | Sends `POST /api/ai/translate-query` with NL query + conversation context | `{ user_query, conversation_context }` + TEA token header |
+| 3 | **LLM Proxy** (Backend) | Validates TEA token via existing auth service | TEA token |
+| 4 | **LLM Proxy** | Builds prompt: system prompt + trade schema + operators + business rules + user query. **No trade data included** | Prompt string (schema only) |
+| 5 | **AWS Bedrock** | Claude 3.5 Sonnet processes prompt and returns structured JSON | Query JSON |
+| 6 | **LLM Proxy** | Validates JSON against expected schema (fields exist, operators valid, dates parseable) | Validated query JSON |
+| 7 | **LLM Proxy** | Logs audit trail: `{ userId, nlQuery, generatedQuery, model, latencyMs }` | Audit record |
+| 8 | **Frontend** | Receives query JSON → extracts filter chips → updates filter bar UI | Filter chips render |
+| 9 | **Frontend** | Sends query via existing **WebSocket** (same format as form-based search) + TEA token | WebSocket query payload |
+| 10 | **Trade Server** | Executes query against trade database, returns paginated results | `{ total_count, trades: [...] }` |
+| 11 | **AG Grid (SSRM)** | Populates grid with returned trade rows | Rendered grid |
+| 12 | **Chat UI** | Shows: *"Found 47 trades matching your criteria. Displaying results."* | Chat bubble |
+
+#### Flow 2: Grid Manipulation (AG Grid AI Toolkit)
+
+| Step | Component | Action |
+|------|-----------|--------|
+| 1 | **Chat UI** | User types: *"Sort by notional amount descending"* |
+| 2 | **Frontend** | Detects grid manipulation intent (sort/filter/group keywords) |
+| 3 | **AG Grid** | Calls `gridApi.getStructuredSchema()` → returns grid state schema |
+| 4 | **LLM Proxy → Bedrock** | Sends schema + NL command → receives new grid state JSON |
+| 5 | **AG Grid** | Applies via `gridApi.setState(newState)` → triggers SSRM re-fetch |
+| 6 | **Chat UI** | Shows: *"Sorted by notional amount (highest first)"* |
+
+#### Flow 3: Clarification Loop
+
+| Step | Component | Action |
+|------|-----------|--------|
+| 1 | **Chat UI** | User types: *"Show me the swaps"* |
+| 2 | **Bedrock** | Returns `{ clarification_needed: true, clarification_question: "Did you mean FX Swaps, Interest Rate Swaps, or all swap types?" }` |
+| 3 | **Chat UI** | Shows clarification question as AI bubble |
+| 4 | **User** | Replies: *"Interest rate swaps"* |
+| 5 | **LLM Proxy** | Re-sends with full context (original query + clarification answer) |
+| 6 | **Bedrock** | Returns valid query JSON with `asset_class: "IRS"` |
+| 7 | | Proceeds to normal Flow 1 from Step 6 onward |
+
+### Data Sensitivity Enforcement in the Flow
+
+```mermaid
+flowchart LR
+    subgraph "Enters LLM Proxy"
+        IN1["NL Query ✅"]
+        IN2["TEA Token ✅"]
+        IN3["Conversation Context ✅"]
+    end
+    
+    subgraph "Sent to Bedrock"
+        OUT1["Trade Schema ✅"]
+        OUT2["NL Query ✅"]
+        OUT3["System Prompt ✅"]
+        OUT4["Previous Query JSONs ✅"]
+    end
+    
+    subgraph "NEVER Sent to Bedrock"
+        BLOCK1["Trade Records ❌"]
+        BLOCK2["TEA Token ❌"]
+        BLOCK3["WebSocket Response Data ❌"]
+    end
+    
+    IN1 --> OUT2
+    IN3 --> OUT4
+    IN2 -.->|"Validated &<br/>stripped"| OUT1
+    BLOCK1 -.->|"BLOCKED at proxy"| X["🛑"]
+    BLOCK2 -.->|"BLOCKED at proxy"| X
+    BLOCK3 -.->|"BLOCKED at proxy"| X
+```
+
+---
+
+## 11. Data Security Architecture
+
+> [!CAUTION]
+> Since trade data is sensitive, this section defines the strict security boundaries.
+
+### What the LLM Sees vs. What It Never Sees
+
+| ✅ LLM Receives | ❌ LLM NEVER Receives |
+|-----------------|----------------------|
+| Trade schema (field names, types, enums) | Actual trade records |
+| User's natural language query | Counterparty names, trader names |
+| Operator definitions and business rules | Trade IDs, notional amounts |
+| Previous generated queries (structured JSON) | Any PII or sensitive financial data |
+| Current date for relative date resolution | Authentication tokens |
+
+### Security Flow
+
+```mermaid
+flowchart LR
+    subgraph Safe["Sent to Bedrock ✅"]
+        S1["Trade schema metadata"]
+        S2["User NL query"]
+        S3["System prompt"]
+        S4["Previous query JSON"]
+    end
+    
+    subgraph Blocked["Never sent to Bedrock ❌"]
+        B1["Trade records"]
+        B2["TEA tokens"]
+        B3["User PII"]
+        B4["Counterparty data"]
+    end
+    
+    Safe --> LLM["AWS Bedrock<br/>(Claude)"]
+    Blocked -.->|BLOCKED| FW["Backend Proxy<br/>Firewall"]
+```
+
+### Additional Security Measures
+- **Backend proxy validates** all requests with TEA token before calling Bedrock
+- **Bedrock stays within your AWS VPC** — no data leaves your cloud boundary
+- **Prompt injection protection** — user input is sanitized and placed within a controlled template
+- **Audit logging** — every AI query is logged with user ID, timestamp, and generated output
+- **No conversation persistence in LLM** — each Bedrock call is stateless; context is managed server-side
+
+---
+
+## 12. Open Discussion Points
+
+### 12.1 Where Should the LLM Run?
+
+**Decision: Backend proxy** — Given data sensitivity and Electron hosting, calling Bedrock directly from the Electron renderer process would expose AWS credentials. The backend proxy:
+- Keeps Bedrock credentials server-side (IAM role)
+- Validates TEA tokens
+- Adds audit logging
+- Sanitizes input before sending to Bedrock
+
+### 12.2 Streaming vs. Non-Streaming LLM Responses
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Streaming** (SSE/WebSocket) | Better UX — shows "thinking" animation, partial results | More complex; structured JSON harder to parse incrementally |
+| **Non-streaming** (single response) | Simpler; get complete JSON at once | User waits 1-3 seconds with no feedback |
+
+**Recommendation**: Use non-streaming for the query JSON, but show a "Searching..." skeleton animation in the chat and grid while waiting.
+
+### 12.3 Multi-Turn Conversation Memory
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **Stateless** (each query is independent) | Simple; no memory management | User can't say "now filter those by EUR" |
+| **Session-based** (last N turns in context) | Natural conversation; refinement possible | Adds tokens to each prompt (cost); context window limits |
+| **Hybrid** (carry forward last query + current) | Best balance; supports refinement without ballooning context | Slightly more complex prompt construction |
+
+**Recommendation**: Hybrid — carry forward the last generated query and the last 2-3 user messages. Context is managed in the backend proxy, NOT in the Electron frontend.
+
+### 12.4 Error Handling & Fallback
+
+```mermaid
+flowchart LR
+    A[LLM Response] --> B{Valid JSON?}
+    B -->|No| C[Retry once with<br/>stricter prompt]
+    C --> D{Valid now?}
+    D -->|No| E[Show error in chat:<br/>'Could not understand. Try rephrasing.']
+    D -->|Yes| F[Proceed]
+    B -->|Yes| G{Fields valid?}
+    G -->|No| H[Fix obvious issues<br/>e.g., unknown field names]
+    H --> F
+    G -->|Yes| F
+    F --> I[Send to server]
+    I --> J{Server error?}
+    J -->|Yes| K[Show server error in chat]
+    J -->|No| L[Display results]
+```
+
+### 12.5 Copilot Integration
+
+Since Copilot access is available, it can be leveraged for:
+- **Developer productivity** — Copilot assists in writing the prompt templates, validation logic, and AG Grid integration code
+- **NOT for runtime query translation** — Copilot is a dev tool, not a runtime API; Bedrock is used for live query translation
+
+---
+
+## 13. Implementation Phases
+
+### Phase 1: MVP (2-3 weeks)
+- [ ] Chat UI component (basic message list + input) within Electron blotter
+- [ ] LLM proxy backend service with TEA token auth
+- [ ] AWS Bedrock integration (Claude 3.5 Sonnet)
+- [ ] Prompt engineering with trade schema
+- [ ] NL → query JSON translation with validation
+- [ ] Send generated query via existing WebSocket
+- [ ] Display results in AG Grid (adopt SSRM for this blotter)
+- [ ] Basic filter chips from generated query
+- [ ] Error handling, retry logic, and audit logging
+- [ ] Data sensitivity guardrails (schema-only to LLM)
+
+### Phase 2: Enhanced UX (2-3 weeks)
+- [ ] Conversation history with multi-turn support (server-side context)
+- [ ] AG Grid AI Toolkit integration for grid-level NL commands (sort/filter/group)
+- [ ] Tiered model routing (Haiku for simple, Sonnet for complex)
+- [ ] Suggested query templates
+- [ ] Query validation and sanitization layer
+- [ ] Loading states and animations
+- [ ] Query history / saved searches
+
+### Phase 3: Advanced Features (3-4 weeks)
+- [ ] MCP Server implementation (server-side)
+- [ ] Multi-step agentic workflows (search → analyze → export)
+- [ ] Voice-to-text input
+- [ ] Query analytics dashboard (accuracy, latency, cost per query)
+- [ ] Feedback loop (👍/👎 on results) for prompt refinement
+- [ ] Cross-blotter integration (click trade → open in detail blotter)
+
+---
+
+## 14. Remaining Questions
+
+The following questions are still open:
+
+1. **Existing Query Format**: Can you share the structure of the WebSocket query JSON your forms currently produce? This will be the target output format for the LLM.
+
+2. **Trade Schema**: What are all the fields/columns available in your trade dataset? The prompt accuracy depends heavily on having the complete field list.
+
+3. **Server-Side Team**: Is there a separate backend team? What's their capacity for the LLM proxy service? This determines whether the proxy is built by your team or theirs.
+
+4. **Expected Query Complexity**: What's the most complex query a user might ask? E.g.:
+   - Simple: *"Show FX trades from yesterday"*
+   - Medium: *"All trades with JP Morgan where notional > 5M, grouped by currency"*
+   - Complex: *"Compare my FX exposure this week vs last week by counterparty"*
+
+5. **AWS Region**: Which AWS region is Bedrock provisioned in? This determines latency and data residency compliance.
+
+6. **Electron IPC**: Should clicking a trade row in this blotter open the trade detail in another existing blotter via Electron IPC?
